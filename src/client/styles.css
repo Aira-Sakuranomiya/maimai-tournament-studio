@@ -137,7 +137,10 @@ img { object-fit: cover; }
 .control-shell .row-buttons button.live{color:#fff;background:#ff315f;border-color:#ff315f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);font-weight:800}
 
 /* Song source colors and layouts for complete 1P / 2P / mission sets. */
-.obs-songs .song-meta>span.source-1p{background:var(--p1);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.65)}.obs-songs .song-meta>span.source-2p{background:var(--p2);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.65)}.obs-songs .song-meta>span.source-required{background:#fff;color:#ff315f;text-shadow:none}
+.obs-songs .song-meta>span.source-1p,.obs-songs .song-meta>span.source-2p,.obs-songs .song-meta>span.source-required{padding:0;background:transparent;text-shadow:none}.obs-songs .song-meta>span.source-1p{color:var(--p1)}.obs-songs .song-meta>span.source-2p{color:var(--p2)}.obs-songs .song-meta>span.source-required{color:#ff5b88}
+
+/* The entire player avatar is the upload target; no separate icon button. */
+.control-shell .avatar-wrap label{inset:0;width:auto;height:auto;background:transparent;display:block;cursor:pointer}.control-shell .avatar-wrap label::after{content:"点击更换头像";position:absolute;inset:auto 0 0;padding:6px 3px;background:rgba(8,3,6,.84);color:#fff;font-size:8px;text-align:center;opacity:0;transform:translateY(100%);transition:.16s ease}.control-shell .avatar-wrap:hover label::after,.control-shell .avatar-wrap:focus-within label::after{opacity:1;transform:translateY(0)}
 .obs-songs .obs-song-grid.triple{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.obs-songs .obs-song-grid.triple article{grid-template-columns:240px minmax(0,1fr);gap:18px;min-height:430px;padding:20px}.obs-songs .obs-song-grid.triple .jacket-frame{width:240px;height:240px}.obs-songs .obs-song-grid.triple .song-meta>small{margin-top:15px;gap:7px;flex-wrap:wrap}.obs-songs .obs-song-grid.triple .obs-difficulty-line .difficulty-badge{font-size:10px;min-height:25px;padding:5px 8px}.obs-songs .obs-song-grid.triple .obs-difficulty-line>strong{font-size:13px}.obs-songs .obs-song-grid.triple .obs-difficulty-line>em{width:100%;font-size:9px}.obs-songs .obs-song-grid.triple .song-meta h2{font-size:26px;margin:9px 0}.obs-songs .obs-song-grid.triple .song-meta p{font-size:13px}
 .obs-songs .obs-song-grid.many{grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;gap:16px 28px}.obs-songs .obs-song-grid.many article{grid-template-columns:170px minmax(0,1fr);gap:16px;min-height:250px;padding:15px}.obs-songs .obs-song-grid.many .jacket-frame{width:170px;height:170px}.obs-songs .obs-song-grid.many .song-meta>small{margin-top:10px}.obs-songs .obs-song-grid.many .song-meta h2{font-size:23px}
 
@@ -153,4 +156,103 @@ img { object-fit: cover; }
 }
 @media (max-width: 700px){
   .control-shell{display:block;overflow-x:hidden}.sidebar{position:fixed;z-index:50;bottom:0;top:auto;width:100%;height:62px;display:block;padding:6px 10px;border:0;border-top:1px solid var(--line)}.brand,.sidebar-foot{display:none}.sidebar nav{margin:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}.sidebar nav button{min-width:0;height:49px;display:grid;place-items:center;gap:0;font-size:8px!important}.sidebar nav button span{font-size:7px}.control-main{min-width:0;padding:0 12px 90px}.topbar{min-height:82px}.event-chip{display:none}.hero-panel{padding:30px 22px}.hero-panel h2{font-size:35px}.hero-orbit{display:none}.metric-grid,.quick-grid{grid-template-columns:1fr 1fr}.quick-grid button:last-child{grid-column:1/-1}.section-heading{align-items:flex-start;flex-direction:column}.inline-create{width:100%}.inline-create input{flex:1;min-width:0}.player-grid{grid-template-columns:1fr}.setup-sidebar{grid-template-columns:1fr}.team-member-list{grid-template-columns:1fr}.slot-grid{grid-template-columns:repeat(2,1fr)}.versus-card{grid-template-columns:1fr 80px 1fr}.big-avatar{width:60px;height:60px}.broadcast-grid{grid-template-columns:minmax(0,1fr)}.broadcast-card{padding:12px}.broadcast-actions button{width:auto;min-width:108px}.preview-frame{aspect-ratio:16/9}
+}
+
+/* Legibility pass: the console is used at arm's length and OBS is rendered at 1080p. */
+.control-shell .brand span{font-size:10px;letter-spacing:.16em}
+.control-shell .sidebar nav button{font-size:14px}
+.control-shell .sidebar nav button span{font-size:11px}
+.control-shell .status-row,.control-shell .status-row b,.control-shell .sidebar-foot small{font-size:11px}
+.control-shell .eyebrow,.control-shell .section-heading>div>span,.control-shell .panel-title span{font-size:11px;letter-spacing:.13em}
+.control-shell .event-chip span,.control-shell .event-chip i{font-size:11px}
+.control-shell .live-pill{font-size:11px}
+.control-shell .metric-grid span{font-size:10px;letter-spacing:.1em}
+.control-shell .metric-grid small,.control-shell .quick-grid button small{font-size:12px}
+.control-shell .section-heading p,.control-shell .empty-state p{font-size:14px}
+.control-shell .player-card small{font-size:10px}
+.control-shell .player-card p{font-size:12px}
+.control-shell .card-actions button,.control-shell .small-button{font-size:11px}
+.control-shell .field-label{font-size:12px}
+.control-shell .picker-list b{font-size:13px}
+.control-shell .size-badge,.control-shell .round-chip,.control-shell .selected-broadcast{font-size:11px}
+.control-shell .hint{font-size:12px}
+.control-shell .slot-grid label>span{font-size:10px}
+.control-shell .slot-grid select{font-size:12px}
+.control-shell .event-row small,.control-shell .event-row em{font-size:11px}
+.control-shell .direct-bracket-editor h4 span,.control-shell .editor-match-column header span,.control-shell .editor-match-column header b,.control-shell .pairing-side i,.control-shell .pairing-vs{font-size:9px}
+.control-shell .pairing-side select{font-size:11px}
+.control-shell .match-list>button>i{font-size:11px}
+.control-shell .match-list>button span b{font-size:12px}
+.control-shell .match-list>button span small{font-size:11px}
+.control-shell .side-tag{font-size:10px}
+.control-shell .versus-center>span,.control-shell .versus-center i{font-size:11px}
+.control-shell .search-popover b{font-size:13px}
+.control-shell .search-popover small{font-size:11px}
+.control-shell .search-popover button{font-size:10px}
+.control-shell .song-number{font-size:11px}
+.control-shell .chosen-songs b{font-size:13px}
+.control-shell .chosen-songs small,.control-shell .chosen-songs select{font-size:11px}
+.control-shell .chart-choice strong,.control-shell .chart-choice span{font-size:10px}
+.control-shell .chart-choice i{font-size:9px}
+.control-shell .difficulty-line .difficulty-badge{font-size:9px;min-height:20px}
+.control-shell .difficulty-line>strong{font-size:10px}
+.control-shell .score-head{font-size:11px}
+.control-shell .score-row>span>i{font-size:10px}
+.control-shell .score-row>span b{font-size:12px}
+.control-shell .score-row>span small{font-size:10px}
+.control-shell .score-row input{font-size:14px}
+.control-shell .score-row>span:last-child{font-size:11px}
+.control-shell .score-row>span small .difficulty-text{font-size:9px}
+.control-shell .tie-alert b{font-size:12px}
+.control-shell .tie-alert p{font-size:11px}
+.control-shell .team-name-editor>span{font-size:11px}
+.control-shell .team-member-list b{font-size:12px}
+.control-shell .team-member-list small,.control-shell .team-empty,.control-shell .team-add-row button{font-size:12px}
+.control-shell .team-config-center span{font-size:10px}
+.control-shell .team-config-center button{font-size:11px}
+.control-shell .battle-table-head{font-size:11px}
+.control-shell .battle-index{font-size:11px}
+.control-shell .row-vs span{font-size:11px}
+.control-shell .row-vs b{font-size:10px}
+.control-shell .row-buttons button{font-size:14px}
+.control-shell .small-empty{font-size:12px}
+.control-shell .broadcast-head span{font-size:10px}
+.control-shell .broadcast-head b{font-size:11px}
+.control-shell .preview-frame>span{font-size:11px}
+.control-shell .source-url{font-size:10px}
+.control-shell .source-url code,.control-shell .source-url button{font-size:11px}
+.control-shell .toast{font-size:12px}
+.control-shell .avatar-wrap label::after{font-size:10px}
+
+.obs-stage:not(.obs-match) .obs-corner.top-right span,
+.obs-stage:not(.obs-match) .obs-corner.top-right b{font-size:14px}
+.obs-stage .obs-title>span{font-size:17px}
+.obs-stage .obs-title p{font-size:16px}
+.obs-stage .obs-footer{font-size:14px}
+.obs-songs .song-meta>span{font-size:16px}
+.obs-songs .song-meta>small{font-size:14px}
+.obs-songs .song-meta p{font-size:16px}
+.obs-stage .obs-difficulty-line>strong{font-size:18px}
+.obs-stage .obs-difficulty-line>em{font-size:14px}
+.obs-results .result-player small{font-size:14px}
+.obs-results .result-label{font-size:14px}
+.obs-results .result-row>div>span{font-size:14px}
+.obs-results .result-row p small{font-size:13px}
+.obs-results .result-row p small .difficulty-text{font-size:10px}
+.obs-bracket .obs-team-roster article>strong{font-size:15px}
+.obs-bracket .obs-team-roster article span b{font-size:13px}
+.obs-bracket .obs-battle-log>h2{font-size:14px}
+.obs-bracket .obs-battle-log article>span{font-size:11px}
+.obs-bracket .obs-battle-log article>strong{font-size:15px}
+.obs-bracket .obs-battle-log article>i{font-size:11px}
+.obs-stage .bracket-column h3{font-size:13px}
+.obs-stage .bracket-column article{font-size:11px}
+.obs-stage .bracket-column article b{font-size:10px}
+
+@media (max-width:1050px){
+  .control-shell .sidebar nav button{font-size:12px}
+}
+@media (max-width:700px){
+  .control-shell .sidebar nav button{font-size:10px!important}
+  .control-shell .sidebar nav button span{font-size:9px}
 }

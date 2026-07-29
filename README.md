@@ -1,4 +1,4 @@
-# MAI MATCH Tournament Studio
+# MADMAI.wav Tournament Studio
 
 面向 maimai 两队赛制直播的本地导播控制台。Vue 控制台、REST API、Socket.IO 实时播出和 SQLite 数据库由同一个 Node 项目提供。
 
