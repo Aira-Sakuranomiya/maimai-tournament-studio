@@ -10,6 +10,7 @@ the later refinement and legibility modules override base layout values.
 - `40-obs-teams.css`: team status broadcast.
 - `50-refinements.css`: blue console theme, difficulty colors, OBS typography,
   source colors, and saved-state feedback.
+- `55-obs-geometry.css`: shared geometric frames and page-specific shape accents.
 - `60-responsive.css`: console layout breakpoints.
 - `70-legibility.css`: final minimum font sizes for console and OBS use.
 

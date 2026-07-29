@@ -4,7 +4,7 @@ import { createDatabase, nextPowerOfTwo } from './db.js'
 import {
   addTeamRow, confirmMatch, createTournament, getBracket, getMatch, getTeamBoard,
   publishBroadcast, reopenMatch, saveBroadcastDraft, saveMatchSongs, saveScores,
-  setCurrentTeamRow, setTournamentSlots, updateTeamMembers, updateTeamRow,
+  resetTeamBoard, setCurrentTeamRow, setTournamentSlots, updateTeamMembers, updateTeamRow,
   updateTeamSettings
 } from './service.js'
 
@@ -247,5 +247,29 @@ describe('两队导播面板', () => {
     ])
     confirmMatch(db, match.id)
     expect(getTeamBoard(db).score).toEqual({ team1: 0, team2: 1 })
+  })
+
+  it('一键清空本轮并保留队名与颜色重新开始', () => {
+    const [yellow, green] = addPlayers(2)
+    let board = updateTeamMembers(db, [yellow], [green])
+    board = updateTeamSettings(db, {
+      team1Name: '黄队',
+      team1Color: '#f5c84c',
+      team2Name: '绿队',
+      team2Color: '#55d68b'
+    })
+    board = updateTeamRow(db, board.matches[0].id, yellow, green)
+    saveMatchSongs(db, board.matches[0].id, [sampleSong()])
+
+    board = resetTeamBoard(db)
+
+    expect(board.tournament.team1Name).toBe('黄队')
+    expect(board.tournament.team2Name).toBe('绿队')
+    expect(board.tournament.participantIds).toEqual([])
+    expect(board.members).toEqual({ team1: [], team2: [] })
+    expect(board.matches).toHaveLength(1)
+    expect(board.matches[0].status).toBe('locked')
+    expect(board.matches[0].songs).toEqual([])
+    expect(board.score).toEqual({ team1: 0, team2: 0 })
   })
 })

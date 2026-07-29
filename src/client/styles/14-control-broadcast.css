@@ -9,7 +9,6 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 13px;
   background: var(--panel);
   padding: 17px;
 }
@@ -50,7 +49,6 @@
 .preview-frame {
   width: 100%;
   aspect-ratio: 16/9;
-  border-radius: 8px;
   overflow: hidden;
   background: #040712;
   position: relative;
@@ -70,7 +68,6 @@
     color: var(--p1);
     font: 600 7px "Space Grotesk";
     padding: 4px 6px;
-    border-radius: 4px;
   }
 }
 
@@ -119,7 +116,6 @@
   z-index: 100;
   background: #111a2e;
   border: 1px solid rgba(var(--p1-rgb),.25);
-  border-radius: 9px;
   box-shadow: 0 14px 40px #02040c;
   padding: 13px 17px;
   display: flex;

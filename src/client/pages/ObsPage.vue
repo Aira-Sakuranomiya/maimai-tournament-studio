@@ -98,6 +98,18 @@ onBeforeUnmount(() => {
     <div class="obs-stage" :class="`obs-${channel}`" :style="stageStyle">
       <div v-if="channel === 'match'" class="obs-match-background"></div>
       <div v-else class="obs-main-background"></div>
+      <div v-if="channel !== 'match'" class="broadcast-geometry" aria-hidden="true">
+        <i class="geometry-frame"></i>
+        <i class="geometry-rail"></i>
+        <i class="geometry-corner corner-top-left"></i>
+        <i class="geometry-corner corner-top-right"></i>
+        <i class="geometry-corner corner-bottom-left"></i>
+        <i class="geometry-corner corner-bottom-right"></i>
+        <i class="geometry-cross cross-left"></i>
+        <i class="geometry-cross cross-right"></i>
+        <i class="geometry-bars bars-left"></i>
+        <i class="geometry-bars bars-right"></i>
+      </div>
 
       <div v-if="!payload" class="obs-empty">
         <div class="empty-disc"><i></i><b>WAIT</b></div>
@@ -124,8 +136,8 @@ onBeforeUnmount(() => {
       <template v-else-if="channel === 'songs'">
         <header class="obs-title compact"><span>NEXT TRACKS</span><h1>曲目揭晓</h1><p>{{ payload.match.player1?.name }} VS {{ payload.match.player2?.name }}</p></header>
         <div class="obs-song-grid" :class="{ single: payload.match.songs.length === 1, triple: payload.match.songs.length === 3, many: payload.match.songs.length > 3 }">
-          <article v-for="(song, index) in payload.match.songs" :key="song.id">
-            <div class="jacket-frame"><img :src="song.jacketUrl" /><span>{{ String(index + 1).padStart(2, '0') }}</span></div>
+          <article v-for="song in payload.match.songs" :key="song.id" :class="`source-${song.source}`">
+            <div class="jacket-frame"><img :src="song.jacketUrl" /></div>
             <div class="song-meta"><span :class="`source-${song.source}`">{{ sourceLabel(song.source) }}</span><small class="obs-difficulty-line"><i class="difficulty-badge" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><strong>LV {{ song.level }}</strong><em>{{ song.chartType.toUpperCase() }}</em></small><h2>{{ song.title }}</h2><p>{{ song.artist }}</p></div>
           </article>
         </div>
@@ -140,9 +152,9 @@ onBeforeUnmount(() => {
             <div class="result-label">VS</div>
             <div class="result-player two"><span><small>{{ teamName(2) }} · 2P</small><b>{{ payload.match.player2?.name }}</b></span><img v-if="payload.match.player2?.avatarUrl" :src="payload.match.player2.avatarUrl" /></div>
           </div>
-          <div class="result-row" v-for="(song, index) in payload.match.songs" :key="song.id">
+          <div class="result-row" v-for="song in payload.match.songs" :key="song.id" :class="`source-${song.source}`">
             <strong class="one">{{ song.score1 == null ? '—' : Number(song.score1).toFixed(4) }}<small>%</small></strong>
-            <div><span>{{ String(index + 1).padStart(2, '0') }}</span><img :src="song.jacketUrl" /><p><b>{{ song.title }}</b><small><span>{{ sourceLabel(song.source) }}</span><i class="difficulty-text" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><span>LV {{ song.level }}</span></small></p></div>
+            <div class="result-song-card"><img :src="song.jacketUrl" /><p><b>{{ song.title }}</b><small><span>{{ sourceLabel(song.source) }}</span><i class="difficulty-text" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><span>LV {{ song.level }}</span></small></p></div>
             <strong class="two">{{ song.score2 == null ? '—' : Number(song.score2).toFixed(4) }}<small>%</small></strong>
           </div>
           <div class="result-total">

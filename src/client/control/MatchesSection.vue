@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toRefs } from 'vue'
+import { ref, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import { useControlContext } from './context'
 
@@ -7,9 +7,30 @@ const router = useRouter()
 const {
   selectedMatch, activeTournament, pendingMatches, team1Name, team2Name, chosenSongs, songCache,
   busy, songQuery, songResults, scoreDraft, tiePending, matchLabel, selectMatch, syncSongCache,
-  flattenDifficulties, difficultyClass, difficultyName, addSong, removeSong, saveSongs, sourceLabel,
+  flattenDifficulties, difficultyClass, difficultyName, addSong, removeSong, moveSong, saveSongs, sourceLabel,
   scoreProgress, scoreDirty, savePartialScores, confirmResult, reopenSelected
 } = toRefs(useControlContext())
+
+const draggedSongIndex = ref<number | null>(null)
+const songDropTarget = ref<number | null>(null)
+
+function beginSongDrag(event: DragEvent, index: number) {
+  draggedSongIndex.value = index
+  songDropTarget.value = index
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(index))
+}
+
+function dropSong(index: number) {
+  if (draggedSongIndex.value != null) moveSong.value(draggedSongIndex.value, index)
+  endSongDrag()
+}
+
+function endSongDrag() {
+  draggedSongIndex.value = null
+  songDropTarget.value = null
+}
 </script>
 
 <template>
@@ -43,10 +64,29 @@ const {
             </div>
           </div>
           <div class="chosen-songs">
-            <article v-for="(song, index) in chosenSongs" :key="`${song.songId}-${index}`">
+            <article
+              v-for="(song, index) in chosenSongs"
+              :key="`${song.id || song.songId}-${index}`"
+              :class="{ dragging: draggedSongIndex === index, 'drag-over': songDropTarget === index && draggedSongIndex !== index }"
+              @dragenter.prevent="songDropTarget = index"
+              @dragover.prevent
+              @drop.prevent="dropSong(index)"
+            >
+              <div v-if="selectedMatch.status !== 'completed'" class="song-order-controls">
+                <button
+                  class="song-drag-handle"
+                  draggable="true"
+                  title="拖拽调整顺序"
+                  :aria-label="`拖拽调整《${song.title}》的顺序`"
+                  @dragstart="beginSongDrag($event, index)"
+                  @dragend="endSongDrag"
+                >⠿</button>
+                <button class="song-move-button" :disabled="index === 0" @click="moveSong(index, index - 1)" aria-label="上移曲目">↑</button>
+                <button class="song-move-button" :disabled="index === chosenSongs.length - 1" @click="moveSong(index, index + 1)" aria-label="下移曲目">↓</button>
+              </div>
               <span class="song-number">{{ String(index + 1).padStart(2, '0') }}</span>
               <img :src="song.jacketUrl" />
-              <div><b>{{ song.title }}</b><small>{{ song.artist }} · {{ song.chartType.toUpperCase() }}</small><span class="difficulty-line"><i class="difficulty-badge" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><strong>LV {{ song.level }}</strong></span></div>
+              <div class="song-detail"><b>{{ song.title }}</b><small>{{ song.artist }} · {{ song.chartType.toUpperCase() }}</small><span class="difficulty-line"><i class="difficulty-badge" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><strong>LV {{ song.level }}</strong></span></div>
               <select v-model="song.source" :disabled="selectedMatch.status === 'completed'"><option value="1p">1P 选曲</option><option value="2p">2P 选曲</option><option value="required">课题曲</option><option value="tiebreak">加赛曲</option></select>
               <button v-if="selectedMatch.status !== 'completed'" class="icon-danger" @click="removeSong(index)">×</button>
             </article>

@@ -91,15 +91,6 @@
     border: 1px solid rgba(255,255,255,.72);
     background: none;
     box-shadow: 12px 12px 0 rgba(0,0,0,.38);
-    & span {
-      left: -14px;
-      top: -14px;
-      width: 62px;
-      height: 62px;
-      border-radius: 0;
-      background: #ff3e82;
-      color: #fff;
-    }
   }
   & .song-meta {
     &>span {
@@ -167,9 +158,6 @@
   }
   & .result-row {
     border-bottom-color: rgba(255,255,255,.22);
-    &>div>span {
-      color: #ff3e82;
-    }
     & img {
       border-radius: 0;
       border: 1px solid rgba(255,255,255,.55);
@@ -249,7 +237,6 @@
 
 .avatar-wrap,
 .mini-avatar,
-.big-avatar,
 .result-player img,
 .obs-team-roster article>span {
   border-radius: 0;
@@ -313,12 +300,6 @@
 /* Director console: fixed blue signal language, independent from team colors. */
 
 .control-shell {
-  --panel: #081426;
-  --panel-2: #0b1b33;
-  --line: rgba(83,155,255,.22);
-  --muted: #8298ba;
-  --accent: #348cff;
-  --amber: #8fc1ff;
   background: radial-gradient(circle at 78% -10%,rgba(var(--p1-rgb),.22),transparent 34%),linear-gradient(145deg,#040a14,#071426 58%,#040b16);
   & .sidebar {
     background: rgba(4,10,20,.97);

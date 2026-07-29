@@ -6,15 +6,18 @@ const {
   teamBoard, team1Name, team1Color, team2Name, team2Color, team1PlayerIds, team2PlayerIds,
   addTeam1PlayerId, addTeam2PlayerId, availableForTeam1, availableForTeam2, teamSettingsDirty,
   busy, bracket, pairingDraft, playerById, saveTeamSettings, addPlayerToTeam, removePlayerFromTeam,
-  addTeamMatchRow, teamRowDirty, saveTeamRow, setCurrentRow, deleteTeamMatchRow
+  resetRound, addTeamMatchRow, teamRowDirty, saveTeamRow, setCurrentRow, deleteTeamMatchRow
 } = toRefs(useControlContext())
 </script>
 
 <template>
   <section class="page-section">
     <div class="section-heading">
-      <div><span>TEAM BATTLE BOARD</span><h2>队伍与对战行</h2><p>两边自由添加玩家；进入下一轮时由导播移除淘汰者，把队伍各自减半后重新排对战行。系统不会替你决定人选。</p></div>
-      <div class="team-score-chip" v-if="teamBoard"><span :style="{ color: team1Color }">{{ team1Name }} {{ teamBoard.score.team1 }}</span><b>:</b><span :style="{ color: team2Color }">{{ teamBoard.score.team2 }} {{ team2Name }}</span></div>
+      <div><span>TEAM BATTLE BOARD</span><h2>队伍与对战行</h2><p>从候选池自由分队、安排选人顺序和当前对战行。</p></div>
+      <div class="team-heading-actions">
+        <div class="team-score-chip" v-if="teamBoard"><span :style="{ color: team1Color }">{{ team1Name }} {{ teamBoard.score.team1 }}</span><b>:</b><span :style="{ color: team2Color }">{{ teamBoard.score.team2 }} {{ team2Name }}</span></div>
+        <button class="round-reset-button" :disabled="busy === 'round-reset'" @click="resetRound">清空并重新开始</button>
+      </div>
     </div>
     <div class="team-config-grid">
       <article class="panel team-panel" :style="{ '--team-color': team1Color }">

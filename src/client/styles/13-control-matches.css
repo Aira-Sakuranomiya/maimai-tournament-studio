@@ -17,7 +17,6 @@
   &>button {
     width: 100%;
     border: 1px solid transparent;
-    border-radius: 9px;
     background: transparent;
     color: white;
     display: flex;
@@ -37,7 +36,6 @@
   &>button>i {
     width: 27px;
     height: 27px;
-    border-radius: 6px;
     background: #151e34;
     display: grid;
     place-items: center;
@@ -85,7 +83,6 @@
 .versus-card {
   height: 205px;
   border: 1px solid var(--line);
-  border-radius: 13px;
   background: linear-gradient(120deg,rgba(var(--p1-rgb),.09),transparent 38%,transparent 62%,rgba(var(--p2-rgb),.09)),var(--panel);
   display: grid;
   grid-template-columns: 1fr 150px 1fr;
@@ -115,7 +112,6 @@
 .big-avatar {
   width: 82px;
   height: 82px;
-  border-radius: 50%;
   margin: 8px auto;
   border: 2px solid;
   overflow: hidden;
@@ -174,7 +170,6 @@
     color: var(--amber);
     border: 1px solid rgba(255,196,86,.3);
     padding: 4px 8px;
-    border-radius: 20px;
   }
   & i.completed {
     color: var(--p1);
@@ -215,13 +210,11 @@
   background: #0c1325;
   border: 1px solid rgba(255,255,255,.15);
   box-shadow: 0 20px 50px #02040b;
-  border-radius: 10px;
   padding: 7px;
   & article {
     display: flex;
     gap: 10px;
     padding: 8px;
-    border-radius: 8px;
   }
   & article:hover {
     background: rgba(255,255,255,.04);
@@ -229,7 +222,6 @@
   & img {
     width: 54px;
     height: 54px;
-    border-radius: 6px;
   }
   & article>div {
     min-width: 0;
@@ -252,7 +244,6 @@
     border: 1px solid var(--line);
     background: #151e34;
     color: #aeb7cd;
-    border-radius: 5px;
     font-size: 8px;
     padding: 4px 6px;
   }
@@ -267,18 +258,78 @@
   gap: 6px;
   margin: 12px 0;
   & article {
+    position: relative;
     min-height: 88px;
     border: 1px solid var(--line);
-    border-radius: 8px;
     display: flex;
     align-items: center;
     gap: 11px;
     padding: 10px 12px;
+    transition: border-color .15s ease, background-color .15s ease, opacity .15s ease;
+    &.dragging {
+      opacity: .45;
+    }
+    &.drag-over {
+      border-color: var(--p1);
+      background: rgba(var(--p1-rgb),.08);
+      box-shadow: inset 3px 0 var(--p1);
+    }
   }
   & img {
     width: 64px;
     height: 64px;
-    border-radius: 6px;
+  }
+}
+
+.song-order-controls {
+  display: flex;
+  align-items: center;
+}
+
+.song-drag-handle,
+.song-move-button {
+  width: 28px;
+  height: 32px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #667694;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.song-drag-handle {
+  cursor: grab;
+  &:active {
+    cursor: grabbing;
+  }
+  &:hover {
+    border-color: rgba(var(--p1-rgb),.35);
+    color: var(--p1);
+  }
+}
+
+.song-move-button {
+  display: none;
+  font-size: 13px;
+}
+
+@media (pointer: coarse) {
+  .song-order-controls {
+    display: grid;
+    grid-template-columns: repeat(2,24px);
+    gap: 2px;
+  }
+  .song-drag-handle {
+    display: none;
+  }
+  .song-move-button {
+    display: block;
+    width: 24px;
+    height: 32px;
+    border-color: var(--line);
+    &:disabled {
+      opacity: .3;
+    }
   }
 }
 
@@ -287,7 +338,7 @@
   color: #53607c;
 }
 
-.chosen-songs article>div {
+.chosen-songs article>.song-detail {
   display: grid;
   align-content: center;
   gap: 6px;
@@ -311,7 +362,6 @@
   background: #141d33;
   border: 1px solid var(--line);
   color: white;
-  border-radius: 6px;
   font-size: 9px;
   padding: 7px;
 }
@@ -319,7 +369,6 @@
 .icon-danger {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
   border: 1px solid var(--line);
   background: transparent;
   font-size: 17px;
@@ -327,7 +376,6 @@
 
 .score-table {
   border: 1px solid var(--line);
-  border-radius: 9px;
   overflow: hidden;
   margin-bottom: 12px;
 }
@@ -363,7 +411,6 @@
     grid-row: 1/3;
     width: 19px;
     height: 19px;
-    border-radius: 5px;
     background: #19223a;
     display: grid;
     place-items: center;
@@ -388,7 +435,6 @@
     height: 34px;
     background: #090f1e;
     border: 1px solid var(--line);
-    border-radius: 6px;
     color: white;
     text-align: right;
     padding: 0 25px 0 8px;
@@ -408,7 +454,6 @@
 .tie-alert {
   border: 1px solid rgba(255,196,86,.25);
   background: rgba(255,196,86,.06);
-  border-radius: 8px;
   padding: 10px;
   display: flex;
   align-items: center;
@@ -417,7 +462,6 @@
   &>span {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
     display: grid;
     place-items: center;
     background: var(--amber);
@@ -439,7 +483,6 @@
     border: 1px solid rgba(255,196,86,.25);
     background: transparent;
     color: var(--amber);
-    border-radius: 6px;
     padding: 7px;
     font-size: 9px;
   }

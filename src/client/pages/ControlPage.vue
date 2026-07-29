@@ -248,6 +248,16 @@ async function removePlayerFromTeam(team: 1 | 2, playerId: number) {
   })
 }
 
+async function resetRound() {
+  if (!window.confirm(
+    '确定清空本轮并重新开始吗？\n\n双方名单、对战行、曲目、成绩和比分都会清空；玩家库、队名、颜色及已经发布的 OBS 画面不受影响。'
+  )) return
+  await run('round-reset', async () => {
+    applyTeamBoard(await api<TeamBoard>('/api/team-board/reset', { method: 'POST' }))
+    notify('本轮已清空，可以重新分队和编排')
+  })
+}
+
 async function saveTeamRow(match: BracketMatch) {
   await run(`row-${match.id}`, async () => {
     applyTeamBoard(await api<TeamBoard>(`/api/team-board/rows/${match.id}`, json('PUT', {
@@ -335,6 +345,19 @@ function addSong(song: SongSearchResult, chart: any) {
 function removeSong(index: number) {
   chosenSongs.value.splice(index, 1)
   chosenSongs.value.forEach((song, position) => { song.position = position })
+}
+
+function moveSong(fromIndex: number, toIndex: number) {
+  if (
+    fromIndex === toIndex
+    || fromIndex < 0
+    || toIndex < 0
+    || fromIndex >= chosenSongs.value.length
+    || toIndex >= chosenSongs.value.length
+  ) return
+  const [song] = chosenSongs.value.splice(fromIndex, 1)
+  chosenSongs.value.splice(toIndex, 0, song)
+  chosenSongs.value.forEach((item, position) => { item.position = position })
 }
 
 async function saveSongs() {
@@ -483,8 +506,8 @@ provide(controlContextKey, reactive({
   completedMatchCount, availableForTeam1, availableForTeam2, teamSettingsDirty,
   scoreProgress, scoreDirty,
   createPlayer, renamePlayer, uploadAvatar, deletePlayer, saveTeamSettings, addPlayerToTeam,
-  removePlayerFromTeam, saveTeamRow, teamRowDirty, addTeamMatchRow, deleteTeamMatchRow,
-  setCurrentRow, selectMatch, syncSongCache, flattenDifficulties, addSong, removeSong, saveSongs,
+  removePlayerFromTeam, resetRound, saveTeamRow, teamRowDirty, addTeamMatchRow, deleteTeamMatchRow,
+  setCurrentRow, selectMatch, syncSongCache, flattenDifficulties, addSong, removeSong, moveSong, saveSongs,
   savePartialScores, confirmResult, reopenSelected, prepareBroadcast, publish, copyObsUrl, channelLabel, playerById,
   matchLabel, sourceLabel, difficultyClass, difficultyName
 }))

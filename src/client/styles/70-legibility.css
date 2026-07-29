@@ -230,9 +230,6 @@
   & .result-label {
     font-size: 14px;
   }
-  & .result-row>div>span {
-    font-size: 14px;
-  }
   & .result-row p small {
     font-size: 13px;
   }

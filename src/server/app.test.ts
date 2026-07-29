@@ -50,6 +50,31 @@ describe('REST API 流程', () => {
     expect(selected.json().currentMatchId).toBe(tiebreak.json().id)
   })
 
+  it('快速清空本轮并重新开始', async () => {
+    const players = []
+    for (const name of ['YELLOW A', 'YELLOW B', 'GREEN A', 'GREEN B']) {
+      players.push((await app.inject({ method: 'POST', url: '/api/players', payload: { name } })).json())
+    }
+    const configured = await app.inject({
+      method: 'PUT',
+      url: '/api/team-board/members',
+      payload: {
+        team1PlayerIds: [players[0].id, players[1].id],
+        team2PlayerIds: [players[2].id, players[3].id]
+      }
+    })
+    const reset = await app.inject({
+      method: 'POST',
+      url: '/api/team-board/reset'
+    })
+
+    expect(reset.statusCode).toBe(200)
+    expect(reset.json().tournament.participantIds).toEqual([])
+    expect(reset.json().members).toEqual({ team1: [], team2: [] })
+    expect(reset.json().matches).toHaveLength(1)
+    expect(reset.json().matches[0].status).toBe('locked')
+  })
+
   it('创建玩家、赛事、对阵并发布 OBS 快照', async () => {
     const first = await app.inject({ method: 'POST', url: '/api/players', payload: { name: 'ALPHA' } })
     const second = await app.inject({ method: 'POST', url: '/api/players', payload: { name: 'BETA' } })

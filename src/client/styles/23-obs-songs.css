@@ -45,20 +45,6 @@
   height: 100%;
 }
 
-.jacket-frame span {
-  position: absolute;
-  left: -22px;
-  top: -22px;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: #f5f8ff;
-  color: #080d1c;
-  display: grid;
-  place-items: center;
-  font-size: 22px;
-}
-
 .song-meta {
   min-width: 0;
   &>span {

@@ -11,8 +11,8 @@ import { JACKET_DIR, UPLOAD_DIR } from './config.js'
 import {
   addTeamRow, confirmMatch, createTournament, deleteTeamRow, getBracket, getBroadcastState, getMatch,
   getSongCacheInfo, getTeamBoard, getTournament, jacketSourceUrl, listPlayers, listTournaments,
-  publishBroadcast, reopenMatch, saveBroadcastDraft, saveMatchSongs, saveScores, searchSongs,
-  setBracketPairings, setCurrentTeamRow, setTournamentSlots, syncSongs, updateTeamMembers,
+  publishBroadcast, reopenMatch, resetTeamBoard, saveBroadcastDraft, saveMatchSongs, saveScores,
+  searchSongs, setBracketPairings, setCurrentTeamRow, setTournamentSlots, syncSongs, updateTeamMembers,
   updateTeamRow, updateTeamSettings
 } from './service.js'
 import type { BroadcastChannel } from '../shared/types.js'
@@ -44,6 +44,7 @@ export async function buildApp(options: { database?: string } = {}): Promise<{ a
   })
   app.delete('/api/team-board/rows/:id', async (request) => deleteTeamRow(db, Number((request.params as any).id)))
   app.post('/api/team-board/current/:id', async (request) => setCurrentTeamRow(db, Number((request.params as any).id)))
+  app.post('/api/team-board/reset', async () => resetTeamBoard(db))
 
   app.get('/api/players', async () => listPlayers(db))
   app.post('/api/players', async (request, reply) => {

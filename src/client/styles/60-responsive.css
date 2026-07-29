@@ -145,6 +145,15 @@
   .team-member-list {
     grid-template-columns: 1fr;
   }
+  .team-heading-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    & .team-score-chip,
+    & .round-reset-button {
+      justify-content: center;
+    }
+  }
   .versus-card {
     grid-template-columns: 1fr 80px 1fr;
   }

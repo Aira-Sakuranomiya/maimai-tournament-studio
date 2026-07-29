@@ -406,6 +406,22 @@ export function updateTeamMembers(db: Db, team1PlayerIds: number[], team2PlayerI
   return getTeamBoard(db)
 }
 
+export function resetTeamBoard(db: Db) {
+  const board = getTeamBoard(db)
+  db.transaction(() => {
+    db.prepare('DELETE FROM matches WHERE tournament_id = ?').run(board.tournament.id)
+    db.prepare('DELETE FROM team_members WHERE tournament_id = ?').run(board.tournament.id)
+    db.prepare('DELETE FROM tournament_participants WHERE tournament_id = ?').run(board.tournament.id)
+    const match = db.prepare(`
+      INSERT INTO matches(tournament_id, round_index, match_index, status, manual_pairing)
+      VALUES (?, 0, 0, 'locked', 1)
+    `).run(board.tournament.id)
+    db.prepare(`UPDATE tournaments SET current_match_id = ?, status = 'running' WHERE id = ?`)
+      .run(Number(match.lastInsertRowid), board.tournament.id)
+  })()
+  return getTeamBoard(db)
+}
+
 export function addTeamRow(db: Db, isTiebreak = false) {
   const tournamentId = activeTeamTournamentId(db)
   const nextIndex = ((db.prepare('SELECT MAX(match_index) value FROM matches WHERE tournament_id = ?').get(tournamentId) as AnyRow).value ?? -1) + 1
