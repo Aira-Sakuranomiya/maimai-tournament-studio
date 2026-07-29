@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { api, ApiError, json } from '../api'
 import type { BracketMatch, BroadcastChannel, MatchSong, Player, SongSearchResult, TeamBoard, Tournament } from '../../shared/types'
 import { difficultyClass, difficultyName } from '../../shared/difficulty'
+import { controlContextKey } from '../control/context'
 
 type BracketPayload = { tournament: Tournament; matches: BracketMatch[] }
 
 const sections = [
-  { id: 'overview', label: '总览', mark: '01' },
-  { id: 'players', label: '玩家库', mark: '02' },
-  { id: 'tournament', label: '队伍编排', mark: '03' },
-  { id: 'match', label: '对局控制', mark: '04' },
-  { id: 'broadcast', label: '播出控制', mark: '05' }
+  { id: 'overview', label: '总览', mark: '01', to: '/control/overview', routeName: 'control-overview' },
+  { id: 'players', label: '玩家库', mark: '02', to: '/control/players', routeName: 'control-players' },
+  { id: 'teams', label: '队伍编排', mark: '03', to: '/control/teams', routeName: 'control-teams' },
+  { id: 'matches', label: '对局控制', mark: '04', to: '/control/matches', routeName: 'control-matches' },
+  { id: 'broadcast', label: '播出控制', mark: '05', to: '/control/broadcast', routeName: 'control-broadcast' }
 ]
-const activeSection = ref('overview')
+const route = useRoute()
+const activeSection = computed(() => sections.find((item) => item.routeName === route.name)?.id || 'overview')
 const players = ref<Player[]>([])
 const activeTournament = ref<Tournament | null>(null)
 const bracket = ref<BracketPayload | null>(null)
@@ -59,10 +62,10 @@ const teamSettingsDirty = computed(() =>
   || team2Color.value !== savedTeamSettings.team2Color
 )
 const controlStyle = computed(() => ({
-  '--p1': '#ff315f',
-  '--p2': '#ff315f',
-  '--p1-rgb': '255,49,95',
-  '--p2-rgb': '255,49,95'
+  '--p1': '#348cff',
+  '--p2': '#348cff',
+  '--p1-rgb': '52,140,255',
+  '--p2-rgb': '52,140,255'
 }))
 
 function notify(message: string, kind: 'ok' | 'error' = 'ok') {
@@ -259,7 +262,6 @@ async function setCurrentRow(match: BracketMatch) {
 }
 
 async function selectMatch(match: BracketMatch) {
-  activeSection.value = 'match'
   await setCurrentRow(match)
 }
 
@@ -421,6 +423,19 @@ function matchLabel(match: BracketMatch) {
 }
 function sourceLabel(source: string) { return ({ '1p': '1P 选曲', '2p': '2P 选曲', required: '课题曲', tiebreak: '加赛曲' } as any)[source] }
 
+provide(controlContextKey, reactive({
+  players, activeTournament, bracket, teamBoard, selectedMatch, newPlayerName, pairingDraft,
+  team1Name, team1Color, team2Name, team2Color, team1PlayerIds, team2PlayerIds,
+  addTeam1PlayerId, addTeam2PlayerId, songQuery, songResults, chosenSongs, songCache,
+  scoreDraft, appOrigin, busy, tiePending, broadcastRevision, pendingMatches, liveMatchCount,
+  completedMatchCount, availableForTeam1, availableForTeam2, teamSettingsDirty,
+  createPlayer, renamePlayer, uploadAvatar, deletePlayer, saveTeamSettings, addPlayerToTeam,
+  removePlayerFromTeam, saveTeamRow, teamRowDirty, addTeamMatchRow, deleteTeamMatchRow,
+  setCurrentRow, selectMatch, syncSongCache, flattenDifficulties, addSong, removeSong, saveSongs,
+  confirmResult, reopenSelected, prepareBroadcast, publish, copyObsUrl, channelLabel, playerById,
+  matchLabel, sourceLabel, difficultyClass, difficultyName
+}))
+
 onMounted(() => run('init', loadAll))
 </script>
 
@@ -432,9 +447,17 @@ onMounted(() => run('init', loadAll))
         <div><strong>MADMAI.wav</strong><span>TOURNAMENT STUDIO</span></div>
       </div>
       <nav>
-        <button v-for="item in sections" :key="item.id" :class="{ active: activeSection === item.id }" @click="activeSection = item.id">
-          <span>{{ item.mark }}</span>{{ item.label }}
-        </button>
+        <RouterLink
+          v-for="item in sections"
+          :key="item.id"
+          :to="item.to"
+          custom
+          v-slot="{ navigate }"
+        >
+          <button :class="{ active: activeSection === item.id }" @click="navigate">
+            <span>{{ item.mark }}</span>{{ item.label }}
+          </button>
+        </RouterLink>
       </nav>
       <div class="sidebar-foot">
         <div class="status-row"><i></i><span>LOCAL SERVER</span><b>ONLINE</b></div>
@@ -454,158 +477,7 @@ onMounted(() => run('init', loadAll))
         <div class="event-chip muted" v-else><span>当前赛事</span><strong>尚未创建</strong></div>
       </header>
 
-      <section v-if="activeSection === 'overview'" class="page-section">
-        <div class="hero-panel">
-          <div>
-            <span class="live-pill"><i></i> BROADCAST READY</span>
-            <h2>把每一场对决<br><em>准确送上直播画面。</em></h2>
-            <p>从两队入场、曲目揭晓到成绩确认和加赛安排，所有 OBS 页面由这里统一预览和推送。</p>
-            <div class="hero-actions">
-              <button class="primary" @click="activeSection = activeTournament ? 'match' : 'players'">{{ activeTournament ? '进入对局控制' : '从玩家名单开始' }} <span>→</span></button>
-              <button class="ghost" @click="activeSection = 'broadcast'">检查播出源</button>
-            </div>
-          </div>
-          <div class="hero-orbit"><div class="orbit-core">VS</div><i v-for="n in 8" :key="n" :style="{ transform: `rotate(${n * 45}deg)` }"></i></div>
-        </div>
-        <div class="metric-grid">
-          <article><span>PLAYERS</span><strong>{{ players.length }}</strong><small>玩家库总人数</small></article>
-          <article><span>LIVE MATCHES</span><strong>{{ liveMatchCount }}</strong><small>当前待进行对局</small></article>
-          <article><span>PROGRESS</span><strong>{{ completedMatchCount }}</strong><small>已结算对战行</small></article>
-          <article><span>SONG CACHE</span><strong>{{ songCache.count }}</strong><small>{{ songCache.updatedAt ? '本地曲库可用' : '等待首次同步' }}</small></article>
-        </div>
-        <div class="quick-grid">
-          <button @click="activeSection = 'players'"><b>＋</b><span><strong>添加玩家</strong><small>姓名与自定义头像</small></span><i>→</i></button>
-          <button @click="activeSection = 'tournament'"><b>⌘</b><span><strong>队伍与对战行</strong><small>自由分队并选择当前行</small></span><i>→</i></button>
-          <button @click="activeSection = 'broadcast'"><b>◉</b><span><strong>推送直播</strong><small>预览确认后原子更新</small></span><i>→</i></button>
-        </div>
-      </section>
-
-      <section v-else-if="activeSection === 'players'" class="page-section">
-        <div class="section-heading"><div><span>PLAYER DATABASE</span><h2>玩家名单</h2><p>头像会被保存在本机，并在所有比赛快照中使用。</p></div><form class="inline-create" @submit.prevent="createPlayer"><input v-model="newPlayerName" maxlength="32" placeholder="输入新玩家名称" /><button class="primary" :disabled="busy === 'player'">＋ 添加玩家</button></form></div>
-        <div v-if="players.length" class="player-grid">
-          <article v-for="(player, index) in players" :key="player.id" class="player-card">
-            <div class="avatar-wrap">
-              <img v-if="player.avatarUrl" :src="player.avatarUrl" :alt="player.name" />
-              <span v-else>{{ player.name.slice(0, 1).toUpperCase() }}</span>
-              <label :aria-label="`编辑 ${player.name} 的头像`" title="点击头像编辑"><input type="file" accept="image/png,image/jpeg,image/webp" @change="uploadAvatar(player, $event)" /></label>
-            </div>
-            <div><small>PLAYER {{ String(players.length - index).padStart(2, '0') }}</small><h3>{{ player.name }}</h3><p>#{{ player.id }} · 已就绪</p></div>
-            <div class="card-actions"><button @click="renamePlayer(player)">编辑</button><button class="danger" @click="deletePlayer(player)">删除</button></div>
-          </article>
-        </div>
-        <div v-else class="empty-state"><div>01</div><h3>名单还是空的</h3><p>先添加至少两位玩家，之后就能创建第一场赛事。</p></div>
-      </section>
-
-      <section v-else-if="activeSection === 'tournament'" class="page-section">
-        <div class="section-heading"><div><span>TEAM BATTLE BOARD</span><h2>队伍与对战行</h2><p>两边自由添加玩家；进入下一轮时由导播移除淘汰者，把队伍各自减半后重新排对战行。系统不会替你决定人选。</p></div>
-          <div class="team-score-chip" v-if="teamBoard"><span :style="{ color: team1Color }">{{ team1Name }} {{ teamBoard.score.team1 }}</span><b>:</b><span :style="{ color: team2Color }">{{ teamBoard.score.team2 }} {{ team2Name }}</span></div>
-        </div>
-        <div class="team-config-grid">
-          <article class="panel team-panel" :style="{ '--team-color': team1Color }">
-            <div class="team-name-editor"><input type="color" v-model="team1Color" /><input v-model="team1Name" maxlength="18" /><span>{{ team1PlayerIds.length }} 人</span></div>
-            <div class="team-member-list">
-              <div v-for="id in team1PlayerIds" :key="id"><span class="mini-avatar"><img v-if="playerById(id)?.avatarUrl" :src="playerById(id)?.avatarUrl || ''" /><i v-else>{{ playerById(id)?.name?.[0] }}</i></span><b>{{ playerById(id)?.name }}</b><button @click="removePlayerFromTeam(1, id)">×</button></div>
-              <p v-if="!team1PlayerIds.length">从玩家池加入左队队员</p>
-            </div>
-            <div class="team-add-row"><select v-model="addTeam1PlayerId"><option :value="null">选择玩家…</option><option v-for="player in availableForTeam1" :key="player.id" :value="player.id">{{ player.name }}</option></select><button @click="addPlayerToTeam(1)">＋ 加入</button></div>
-          </article>
-          <div class="team-config-center"><span>TEAM</span><strong>VS</strong><button :class="teamSettingsDirty ? 'primary save-dirty' : 'secondary'" :disabled="!teamSettingsDirty || busy === 'teams'" @click="saveTeamSettings">{{ teamSettingsDirty ? '保存修改' : '已保存' }}</button></div>
-          <article class="panel team-panel right" :style="{ '--team-color': team2Color }">
-            <div class="team-name-editor"><input type="color" v-model="team2Color" /><input v-model="team2Name" maxlength="18" /><span>{{ team2PlayerIds.length }} 人</span></div>
-            <div class="team-member-list">
-              <div v-for="id in team2PlayerIds" :key="id"><span class="mini-avatar"><img v-if="playerById(id)?.avatarUrl" :src="playerById(id)?.avatarUrl || ''" /><i v-else>{{ playerById(id)?.name?.[0] }}</i></span><b>{{ playerById(id)?.name }}</b><button @click="removePlayerFromTeam(2, id)">×</button></div>
-              <p v-if="!team2PlayerIds.length">从玩家池加入右队队员</p>
-            </div>
-            <div class="team-add-row"><select v-model="addTeam2PlayerId"><option :value="null">选择玩家…</option><option v-for="player in availableForTeam2" :key="player.id" :value="player.id">{{ player.name }}</option></select><button @click="addPlayerToTeam(2)">＋ 加入</button></div>
-          </article>
-        </div>
-
-        <article class="panel battle-rows-panel">
-          <div class="panel-title row"><div><span>BATTLE ROWS</span><h3>对战行</h3></div><div class="battle-row-actions"><button class="secondary" @click="addTeamMatchRow(false)">＋ 普通行</button><button class="tiebreak-button" @click="addTeamMatchRow(true)">＋ 加赛行</button></div></div>
-          <div class="battle-table-head"><span>行</span><b :style="{ color: team1Color }">{{ team1Name }} · 1P</b><i>对战</i><b :style="{ color: team2Color }">{{ team2Name }} · 2P</b><span>操作</span></div>
-          <div class="battle-row" v-for="match in bracket?.matches || []" :key="match.id" :class="{ current: teamBoard?.currentMatchId === match.id, done: match.status === 'completed', tiebreak: match.isTiebreak }">
-            <span class="battle-index">{{ match.isTiebreak ? '加赛' : String(match.matchIndex + 1).padStart(2, '0') }}</span>
-            <select v-model="pairingDraft[match.id].player1Id" :disabled="match.status === 'completed' || Boolean(match.songs?.length)"><option :value="null">选择 {{ team1Name }} 玩家</option><option v-for="id in team1PlayerIds" :key="id" :value="id">{{ playerById(id)?.name }}</option></select>
-            <div class="row-vs"><span>{{ match.status === 'completed' ? '已结束' : match.status === 'pending' ? 'READY' : 'VS' }}</span><b v-if="match.winnerId">WIN</b></div>
-            <select v-model="pairingDraft[match.id].player2Id" :disabled="match.status === 'completed' || Boolean(match.songs?.length)"><option :value="null">选择 {{ team2Name }} 玩家</option><option v-for="id in team2PlayerIds" :key="id" :value="id">{{ playerById(id)?.name }}</option></select>
-            <div class="row-buttons"><button :class="{ 'save-dirty': teamRowDirty(match) }" @click="saveTeamRow(match)" :disabled="!teamRowDirty(match) || match.status === 'completed' || Boolean(match.songs?.length)">{{ teamRowDirty(match) ? '保存修改' : '已保存' }}</button><button @click="setCurrentRow(match)" :class="{ live: teamBoard?.currentMatchId === match.id }">当前行</button><button class="danger" @click="deleteTeamMatchRow(match)" :disabled="match.status === 'completed' || Boolean(match.songs?.length)">×</button></div>
-          </div>
-          <div v-if="!bracket?.matches.length" class="small-empty">添加第一条对战行，然后从左右队伍中各选一名玩家。</div>
-        </article>
-      </section>
-
-      <section v-else-if="activeSection === 'match'" class="page-section">
-        <div class="section-heading"><div><span>MATCH DIRECTOR</span><h2>对局控制</h2><p>选择一条对战行，安排曲目并录入双方成绩。</p></div><div class="round-chip" v-if="selectedMatch">{{ matchLabel(selectedMatch) }}</div></div>
-        <div v-if="!activeTournament" class="empty-state"><div>VS</div><h3>队伍面板正在初始化</h3><p>稍后重试即可。</p></div>
-        <div v-else class="director-layout">
-          <aside class="match-list panel">
-            <div class="panel-title"><span>MATCH QUEUE</span><h3>对局队列</h3></div>
-            <button v-for="match in pendingMatches" :key="match.id" :class="{ selected: selectedMatch?.id === match.id, done: match.status === 'completed' }" @click="selectMatch(match)">
-              <i>{{ match.isTiebreak ? 'T' : match.matchIndex + 1 }}</i><span><b>{{ match.player1?.name || '待选择' }} <em>vs</em> {{ match.player2?.name || '待选择' }}</b><small>{{ matchLabel(match) }}</small></span><strong>{{ match.status === 'completed' ? '✓' : '→' }}</strong>
-            </button>
-            <p v-if="!pendingMatches.length" class="hint">没有可操作的对局。</p>
-          </aside>
-          <div v-if="selectedMatch?.player1 && selectedMatch.player2" class="match-workspace">
-            <article class="versus-card">
-              <div class="competitor p1"><span class="side-tag">{{ team1Name }} · 1P</span><div class="big-avatar"><img v-if="selectedMatch.player1?.avatarUrl" :src="selectedMatch.player1.avatarUrl" /><b v-else>{{ selectedMatch.player1?.name?.[0] }}</b></div><h3>{{ selectedMatch.player1?.name }}</h3><small v-if="selectedMatch.total1 != null">{{ selectedMatch.total1.toFixed(4) }}%</small></div>
-              <div class="versus-center"><span>{{ matchLabel(selectedMatch) }}</span><strong>VS</strong><i :class="selectedMatch.status">{{ selectedMatch.status === 'completed' ? (selectedMatch.winnerId ? '已结算' : '本行平局') : '等待成绩' }}</i></div>
-              <div class="competitor p2"><span class="side-tag">{{ team2Name }} · 2P</span><div class="big-avatar"><img v-if="selectedMatch.player2?.avatarUrl" :src="selectedMatch.player2.avatarUrl" /><b v-else>{{ selectedMatch.player2?.name?.[0] }}</b></div><h3>{{ selectedMatch.player2?.name }}</h3><small v-if="selectedMatch.total2 != null">{{ selectedMatch.total2.toFixed(4) }}%</small></div>
-            </article>
-
-            <article class="panel song-editor">
-              <div class="panel-title row"><div><span>SET LIST</span><h3>本场曲目</h3></div><button class="small-button" @click="syncSongCache" :disabled="busy === 'sync'">↻ 同步曲库 · {{ songCache.count }}</button></div>
-              <div v-if="selectedMatch.status !== 'completed'" class="song-search">
-                <input v-model="songQuery" placeholder="搜索曲名、艺术家或别名…" />
-                <div v-if="songResults.length" class="search-popover">
-                  <article v-for="song in songResults" :key="song.id">
-                    <img :src="`/api/songs/${song.id}/jacket`" />
-                    <div><b>{{ song.title }}</b><small>{{ song.artist }}</small><p><button v-for="chart in flattenDifficulties(song)" :key="`${chart.type}-${chart.difficulty}`" class="chart-choice" :class="difficultyClass(chart.difficulty)" @click="addSong(song, chart)"><strong>{{ difficultyName(chart.difficulty) }}</strong><span>LV {{ chart.level }}</span><i>{{ chart.type.toUpperCase() }}</i></button></p></div>
-                  </article>
-                </div>
-              </div>
-              <div class="chosen-songs">
-                <article v-for="(song, index) in chosenSongs" :key="`${song.songId}-${index}`">
-                  <span class="song-number">{{ String(index + 1).padStart(2, '0') }}</span>
-                  <img :src="song.jacketUrl" />
-                  <div><b>{{ song.title }}</b><small>{{ song.artist }} · {{ song.chartType.toUpperCase() }}</small><span class="difficulty-line"><i class="difficulty-badge" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><strong>LV {{ song.level }}</strong></span></div>
-                  <select v-model="song.source" :disabled="selectedMatch.status === 'completed'"><option value="1p">1P 选曲</option><option value="2p">2P 选曲</option><option value="required">课题曲</option><option value="tiebreak">加赛曲</option></select>
-                  <button v-if="selectedMatch.status !== 'completed'" class="icon-danger" @click="removeSong(index)">×</button>
-                </article>
-                <p v-if="!chosenSongs.length" class="hint">从上方搜索曲目并选择谱面。</p>
-              </div>
-              <button v-if="selectedMatch.status !== 'completed'" class="secondary wide" :disabled="!chosenSongs.length" @click="saveSongs">保存曲目配置</button>
-            </article>
-
-            <article class="panel score-editor" v-if="chosenSongs.length && chosenSongs.every(song => song.id)">
-              <div class="panel-title row"><div><span>SCORE INPUT</span><h3>达成率录入</h3></div><small>范围 0.0000 – 101.0000%</small></div>
-              <div class="score-table">
-                <div class="score-head"><span>曲目</span><b class="p1-text">{{ selectedMatch.player1?.name }}</b><b class="p2-text">{{ selectedMatch.player2?.name }}</b></div>
-                <div v-for="(song, index) in chosenSongs" :key="song.id" class="score-row">
-                  <span><i>{{ index + 1 }}</i><b>{{ song.title }}</b><small>{{ sourceLabel(song.source) }} · <em class="difficulty-text" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</em> · LV {{ song.level }}</small></span>
-                  <label><input v-model="scoreDraft[`${song.id}-${selectedMatch.player1?.id}`]" type="number" min="0" max="101" step="0.0001" :disabled="selectedMatch.status === 'completed'" /><em>%</em></label>
-                  <label><input v-model="scoreDraft[`${song.id}-${selectedMatch.player2?.id}`]" type="number" min="0" max="101" step="0.0001" :disabled="selectedMatch.status === 'completed'" /><em>%</em></label>
-                </div>
-              </div>
-              <div v-if="tiePending" class="tie-alert"><span>!</span><div><b>总分完全相同</b><p>本行不会给任何队伍加分，请到“队伍与对战行”添加加赛行并重新选双方选手。</p></div></div>
-              <button v-if="selectedMatch.status !== 'completed'" class="primary wide" @click="confirmResult()">保存成绩并确认本行赛果</button>
-              <button v-else class="secondary wide" @click="reopenSelected">重新打开并修正赛果</button>
-            </article>
-          </div>
-          <div v-else class="empty-state compact-empty"><div>VS</div><h3>这条对战行还没有双方选手</h3><p>请先到“队伍与对战行”中，从左右队伍各选择一名玩家并保存。</p><button class="primary" @click="activeSection = 'tournament'">前往编排</button></div>
-        </div>
-      </section>
-
-      <section v-else-if="activeSection === 'broadcast'" class="page-section">
-        <div class="section-heading"><div><span>OUTPUT CONTROL</span><h2>播出控制</h2><p>先更新预览，确认无误后再把完整快照推送到 OBS。</p></div><div class="selected-broadcast" v-if="selectedMatch">信号源：{{ selectedMatch.player1?.name }} vs {{ selectedMatch.player2?.name }}</div></div>
-        <div class="broadcast-grid">
-          <article v-for="channel in (['match','songs','results','bracket'] as BroadcastChannel[])" :key="channel" class="broadcast-card">
-            <div class="broadcast-head"><div><span><i></i> {{ channel.toUpperCase() }} OUTPUT</span><h3>{{ channelLabel(channel) }}</h3></div><b>R{{ broadcastRevision[channel] || 0 }}</b></div>
-            <div class="preview-frame"><iframe :id="`preview-${channel}`" :src="`/obs/${channel}?preview=1`" :title="`${channelLabel(channel)}预览`"></iframe><span>PREVIEW</span></div>
-            <div class="broadcast-actions"><button class="secondary" @click="prepareBroadcast(channel)">更新预览</button><button class="primary" @click="publish(channel)">推送到直播</button></div>
-            <div class="source-url"><code>{{ `${appOrigin}/obs/${channel}` }}</code><button @click="copyObsUrl(channel)">复制</button></div>
-          </article>
-        </div>
-      </section>
+      <RouterView />
     </main>
 
     <transition name="toast"><div v-if="toast" class="toast" :class="toast.kind"><i>{{ toast.kind === 'ok' ? '✓' : '!' }}</i>{{ toast.message }}</div></transition>

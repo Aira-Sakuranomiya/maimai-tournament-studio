@@ -13,7 +13,15 @@ npm install
 npm run dev
 ```
 
-开发控制台默认位于 `http://localhost:5173/control`。生产运行方式：
+开发控制台默认位于 `http://localhost:5173/control`，并可直接访问每个操作步骤：
+
+- `/control/overview`：总览
+- `/control/players`：玩家库
+- `/control/teams`：队伍编排
+- `/control/matches`：对局控制
+- `/control/broadcast`：播出控制
+
+访问 `/control` 会自动进入总览。生产运行方式：
 
 ```bash
 npm run build
