@@ -1,0 +1,194 @@
+/* OBS team status board */
+
+.team-board-title {
+  top: 68px;
+  &>span {
+    font-size: 12px;
+  }
+  & h1 {
+    display: grid;
+    grid-template-columns: 1fr 190px 1fr;
+    align-items: center;
+    gap: 30px;
+    margin: 7px auto 4px;
+    max-width: 1250px;
+  }
+  & h1 em {
+    font-style: normal;
+    font-size: 36px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  & h1 b {
+    font-size: 56px;
+    color: white;
+  }
+}
+
+.obs-team-board {
+  position: absolute;
+  z-index: 4;
+  left: 78px;
+  right: 78px;
+  top: 220px;
+  bottom: 100px;
+  display: grid;
+  grid-template-columns: 400px minmax(0,1fr) 400px;
+  gap: 28px;
+}
+
+.obs-team-roster {
+  min-width: 0;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  background: rgba(8,14,29,.78);
+  padding: 22px;
+  overflow: hidden;
+  &.one {
+    border-top: 4px solid var(--p1);
+  }
+  &.two {
+    border-top: 4px solid var(--p2);
+  }
+  &>h2 {
+    display: flex;
+    align-items: end;
+    margin: 0 0 16px;
+    font-size: 25px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &.one>h2 {
+    color: var(--p1);
+  }
+  &.two>h2 {
+    color: var(--p2);
+    justify-content: flex-end;
+  }
+  & h2 small {
+    margin-left: auto;
+    color: #687590;
+    font-size: 9px;
+    letter-spacing: .12em;
+  }
+  &.two h2 small {
+    order: -1;
+    margin: 0 auto 0 0;
+  }
+  &>div {
+    display: grid;
+    gap: 6px;
+  }
+  & article {
+    height: 37px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 3px 7px;
+    border-radius: 7px;
+    background: rgba(255,255,255,.035);
+    min-width: 0;
+  }
+  &.two article {
+    justify-content: flex-end;
+  }
+  & article>span {
+    width: 29px;
+    height: 29px;
+    flex: none;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: #18223b;
+    border: 1px solid;
+  }
+  &.one article>span {
+    border-color: var(--p1);
+  }
+  &.two article>span {
+    border-color: var(--p2);
+  }
+  & article img {
+    width: 100%;
+    height: 100%;
+  }
+  & article span b {
+    font-size: 11px;
+  }
+  & article>strong {
+    min-width: 0;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.obs-battle-log {
+  min-width: 0;
+  &>h2 {
+    text-align: center;
+    height: 32px;
+    margin: 0;
+    color: #7a86a2;
+    font-size: 11px;
+    letter-spacing: .16em;
+  }
+  &>div {
+    display: grid;
+    gap: 5px;
+  }
+  & article {
+    height: 39px;
+    display: grid;
+    grid-template-columns: 38px 1fr 55px 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 0 10px;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 8px;
+    background: rgba(8,14,29,.84);
+  }
+  & article.current {
+    border-color: rgba(255,255,255,.42);
+    box-shadow: -3px 0 var(--p1),3px 0 var(--p2),0 0 25px rgba(255,255,255,.06);
+  }
+  & article.tiebreak {
+    border-color: rgba(255,196,86,.35);
+  }
+  & article>span {
+    font-size: 9px;
+    color: #66728d;
+  }
+  & article.tiebreak>span {
+    color: var(--amber);
+  }
+  & article>strong {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  & article>strong.one {
+    text-align: right;
+  }
+  & article>strong.winner {
+    color: var(--amber);
+    text-shadow: 0 0 13px rgba(255,196,86,.35);
+  }
+  & article>i {
+    text-align: center;
+    font-style: normal;
+    font-size: 8px;
+    color: #66728d;
+  }
+  & article.current>i {
+    color: white;
+  }
+  & article.completed:not(.current) {
+    opacity: .72;
+  }
+}

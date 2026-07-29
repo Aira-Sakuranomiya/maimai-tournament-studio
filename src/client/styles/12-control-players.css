@@ -1,0 +1,185 @@
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(330px,1fr));
+  gap: 12px;
+}
+
+.player-card {
+  min-height: 124px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  &:hover {
+    border-color: rgba(255,255,255,.16);
+  }
+}
+
+.avatar-wrap {
+  width: 78px;
+  height: 78px;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#18223e,#11172b);
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  & img {
+    width: 100%;
+    height: 100%;
+  }
+  &>span {
+    font: 700 28px "Space Grotesk";
+    color: var(--p1);
+  }
+  & label {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 23px;
+    height: 23px;
+    border-radius: 6px;
+    background: rgba(6,9,22,.85);
+    display: grid;
+    place-items: center;
+    color: white;
+    cursor: pointer;
+  }
+  & input {
+    display: none;
+  }
+}
+
+.player-card>div:nth-child(2) {
+  min-width: 0;
+}
+
+.player-card small {
+  color: #586480;
+  font: 600 8px "Space Grotesk";
+  letter-spacing: .1em;
+}
+
+.player-card h3 {
+  font: 600 18px "Space Grotesk";
+  margin: 5px 0 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.card-actions {
+  margin-left: auto;
+  display: grid;
+  gap: 5px;
+}
+
+.card-actions button,
+.small-button {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: #8792ad;
+  border-radius: 6px;
+  font-size: 9px;
+  padding: 6px 9px;
+}
+
+.card-actions button:hover {
+  color: white;
+}
+
+.card-actions .danger:hover,
+.icon-danger {
+  color: var(--p2);
+  border-color: rgba(var(--p2-rgb),.4);
+}
+
+.empty-state {
+  min-height: 370px;
+  border: 1px dashed rgba(255,255,255,.12);
+  border-radius: 14px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  background: rgba(255,255,255,.015);
+  & div {
+    font: 700 42px "Space Grotesk";
+    color: #222c48;
+  }
+  & h3 {
+    margin: 12px 0 4px;
+    font: 600 18px "Space Grotesk";
+  }
+  & p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--panel);
+  padding: 22px;
+}
+
+.panel-title {
+  margin-bottom: 18px;
+  & h3 {
+    font: 600 17px "Space Grotesk";
+    margin: 4px 0 0;
+  }
+  &.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  &.row>div {
+    min-width: 0;
+  }
+}
+
+.mini-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #1c2742;
+  & img {
+    width: 100%;
+    height: 100%;
+  }
+  & i {
+    font-style: normal;
+    color: var(--p1);
+  }
+}
+
+.round-chip,
+.selected-broadcast {
+  font: 600 9px "Space Grotesk";
+  letter-spacing: .08em;
+  color: var(--p1);
+  border: 1px solid rgba(var(--p1-rgb),.25);
+  border-radius: 20px;
+  padding: 7px 11px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}

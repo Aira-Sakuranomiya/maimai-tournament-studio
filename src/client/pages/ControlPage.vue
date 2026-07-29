@@ -43,6 +43,7 @@ const songResults = ref<SongSearchResult[]>([])
 const chosenSongs = ref<MatchSong[]>([])
 const songCache = ref<{ count: number; updatedAt: string | null }>({ count: 0, updatedAt: null })
 const scoreDraft = reactive<Record<string, string | number>>({})
+const savedScoreDraft = reactive<Record<string, string | number>>({})
 const appOrigin = window.location.origin
 const busy = ref('')
 const toast = ref<{ message: string; kind: 'ok' | 'error' } | null>(null)
@@ -61,6 +62,32 @@ const teamSettingsDirty = computed(() =>
   || team2Name.value !== savedTeamSettings.team2Name
   || team2Color.value !== savedTeamSettings.team2Color
 )
+const scoreProgress = computed(() => {
+  const match = selectedMatch.value
+  if (!match?.player1 || !match.player2) return { completed: 0, total: chosenSongs.value.length, allComplete: false }
+  const completed = chosenSongs.value.filter((song) => {
+    if (!song.id) return false
+    const first = scoreDraft[`${song.id}-${match.player1!.id}`]
+    const second = scoreDraft[`${song.id}-${match.player2!.id}`]
+    return String(first ?? '').trim() !== '' && String(second ?? '').trim() !== ''
+  }).length
+  return {
+    completed,
+    total: chosenSongs.value.length,
+    allComplete: chosenSongs.value.length > 0 && completed === chosenSongs.value.length
+  }
+})
+const scoreDirty = computed(() => {
+  const match = selectedMatch.value
+  if (!match?.player1 || !match.player2) return false
+  return chosenSongs.value.some((song) => {
+    if (!song.id) return false
+    return [match.player1!.id, match.player2!.id].some((playerId) => {
+      const key = `${song.id}-${playerId}`
+      return String(scoreDraft[key] ?? '').trim() !== String(savedScoreDraft[key] ?? '').trim()
+    })
+  })
+})
 const controlStyle = computed(() => ({
   '--p1': '#348cff',
   '--p2': '#348cff',
@@ -130,10 +157,12 @@ function hydrateMatch(match: BracketMatch) {
   selectedMatch.value = match
   chosenSongs.value = match.songs ? JSON.parse(JSON.stringify(match.songs)) : []
   Object.keys(scoreDraft).forEach((key) => delete scoreDraft[key])
+  Object.keys(savedScoreDraft).forEach((key) => delete savedScoreDraft[key])
   for (const song of chosenSongs.value) {
     if (song.id && match.player1) scoreDraft[`${song.id}-${match.player1.id}`] = song.score1 == null ? '' : Number(song.score1).toFixed(4)
     if (song.id && match.player2) scoreDraft[`${song.id}-${match.player2.id}`] = song.score2 == null ? '' : Number(song.score2).toFixed(4)
   }
+  Object.assign(savedScoreDraft, scoreDraft)
   tiePending.value = false
 }
 
@@ -320,33 +349,56 @@ async function saveSongs() {
   })
 }
 
-async function saveScoreValues() {
+async function saveScoreValues(requireComplete = false) {
   const match = selectedMatch.value
-  if (!match?.player1 || !match.player2 || !chosenSongs.value.every((song) => song.id)) return
-  const requiredKeys = chosenSongs.value.flatMap((song) => [
-    `${song.id}-${match.player1!.id}`,
-    `${song.id}-${match.player2!.id}`
-  ])
-  if (requiredKeys.some((key) => {
-    const value = scoreDraft[key]
-    return value == null || String(value).trim() === '' || !Number.isFinite(Number(value))
-  })) {
-    throw new Error('请完整填写每首曲目的双方成绩')
+  if (!match?.player1 || !match.player2 || !chosenSongs.value.every((song) => song.id)) {
+    throw new Error('当前对局还不能录入成绩')
   }
-  const scores = chosenSongs.value.flatMap((song) => [
-    { songId: song.id!, playerId: match.player1!.id, achievement: Number(scoreDraft[`${song.id}-${match.player1!.id}`]) },
-    { songId: song.id!, playerId: match.player2!.id, achievement: Number(scoreDraft[`${song.id}-${match.player2!.id}`]) }
-  ])
+  const scores: Array<{ songId: number; playerId: number; achievement: number | null }> = []
+  let completed = 0
+  for (const [index, song] of chosenSongs.value.entries()) {
+    const firstRaw = scoreDraft[`${song.id}-${match.player1.id}`]
+    const secondRaw = scoreDraft[`${song.id}-${match.player2.id}`]
+    const firstText = String(firstRaw ?? '').trim()
+    const secondText = String(secondRaw ?? '').trim()
+    const first = firstText ? Number(firstText) : null
+    const second = secondText ? Number(secondText) : null
+    if ([first, second].some((value) => value != null && (!Number.isFinite(value) || value < 0 || value > 101))) {
+      throw new Error(`第 ${index + 1} 首达成率必须在 0 到 101 之间`)
+    }
+    scores.push(
+      { songId: song.id!, playerId: match.player1.id, achievement: first },
+      { songId: song.id!, playerId: match.player2.id, achievement: second }
+    )
+    if (first != null && second != null) completed++
+  }
+  if (requireComplete && completed !== chosenSongs.value.length) throw new Error('请先完整录入每首曲目的双方成绩')
   const updated = await api<BracketMatch>(`/api/matches/${match.id}/scores`, json('PUT', { scores }))
   hydrateMatch(updated)
+  return { updated, completed }
+}
+
+async function refreshResultsDraft(matchId: number) {
+  const state = await api<any>('/api/broadcast/results/draft', json('PUT', { matchId }))
+  broadcastRevision.results = state.revision
+}
+
+async function savePartialScores() {
+  await run('score-save', async () => {
+    const result = await saveScoreValues(false)
+    if (!result) return
+    await refreshResultsDraft(result.updated.id)
+    notify(`已保存 ${result.completed} 首成绩，成绩页预览已更新`)
+  })
 }
 
 async function confirmResult(manualWinnerId?: number) {
   if (!selectedMatch.value) return
   await run('score', async () => {
-    await saveScoreValues()
+    await saveScoreValues(true)
     try {
-      await api(`/api/matches/${selectedMatch.value!.id}/confirm`, json('POST', manualWinnerId ? { manualWinnerId } : {}))
+      const completedMatch = await api<BracketMatch>(`/api/matches/${selectedMatch.value!.id}/confirm`, json('POST', manualWinnerId ? { manualWinnerId } : {}))
+      await refreshResultsDraft(completedMatch.id)
       tiePending.value = false
       await loadTournament(selectedMatch.value!.tournamentId)
       const completed = selectedMatch.value
@@ -429,10 +481,11 @@ provide(controlContextKey, reactive({
   addTeam1PlayerId, addTeam2PlayerId, songQuery, songResults, chosenSongs, songCache,
   scoreDraft, appOrigin, busy, tiePending, broadcastRevision, pendingMatches, liveMatchCount,
   completedMatchCount, availableForTeam1, availableForTeam2, teamSettingsDirty,
+  scoreProgress, scoreDirty,
   createPlayer, renamePlayer, uploadAvatar, deletePlayer, saveTeamSettings, addPlayerToTeam,
   removePlayerFromTeam, saveTeamRow, teamRowDirty, addTeamMatchRow, deleteTeamMatchRow,
   setCurrentRow, selectMatch, syncSongCache, flattenDifficulties, addSong, removeSong, saveSongs,
-  confirmResult, reopenSelected, prepareBroadcast, publish, copyObsUrl, channelLabel, playerById,
+  savePartialScores, confirmResult, reopenSelected, prepareBroadcast, publish, copyObsUrl, channelLabel, playerById,
   matchLabel, sourceLabel, difficultyClass, difficultyName
 }))
 

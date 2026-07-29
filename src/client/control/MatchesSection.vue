@@ -8,7 +8,7 @@ const {
   selectedMatch, activeTournament, pendingMatches, team1Name, team2Name, chosenSongs, songCache,
   busy, songQuery, songResults, scoreDraft, tiePending, matchLabel, selectMatch, syncSongCache,
   flattenDifficulties, difficultyClass, difficultyName, addSong, removeSong, saveSongs, sourceLabel,
-  confirmResult, reopenSelected
+  scoreProgress, scoreDirty, savePartialScores, confirmResult, reopenSelected
 } = toRefs(useControlContext())
 </script>
 
@@ -66,7 +66,13 @@ const {
             </div>
           </div>
           <div v-if="tiePending" class="tie-alert"><span>!</span><div><b>总分完全相同</b><p>本行不会给任何队伍加分，请到“队伍与对战行”添加加赛行并重新选双方选手。</p></div></div>
-          <button v-if="selectedMatch.status !== 'completed'" class="primary wide" @click="confirmResult()">保存成绩并确认本行赛果</button>
+          <div v-if="selectedMatch.status !== 'completed'" class="score-save-bar">
+            <div><b>已录入 {{ scoreProgress.completed }} / {{ scoreProgress.total }} 首</b><small>每曲结束后先保存，成绩页预览会立即更新；全部完成后再结算胜负。</small></div>
+            <div class="score-actions">
+              <button class="secondary" :disabled="!scoreDirty || busy === 'score-save' || busy === 'score'" @click="savePartialScores">保存成绩修改</button>
+              <button class="primary" :disabled="!scoreProgress.allComplete || busy === 'score-save' || busy === 'score'" @click="confirmResult()">确认最终赛果</button>
+            </div>
+          </div>
           <button v-else class="secondary wide" @click="reopenSelected">重新打开并修正赛果</button>
         </article>
       </div>

@@ -108,6 +108,54 @@ describe('淘汰树', () => {
 })
 
 describe('播出快照', () => {
+  it('逐曲保存成绩时立即进入结果草稿，最后一曲完成后才结算胜者', () => {
+    const [first, second] = addPlayers(2)
+    const tournament = createTournament(db, '逐曲成绩测试', [first, second])
+    const match = setTournamentSlots(db, tournament.id, [first, second]).matches[0]
+    saveMatchSongs(db, match.id, [sampleSong(0), sampleSong(1)])
+    const songs = getMatch(db, match.id).songs
+
+    const partial = saveScores(db, match.id, [
+      { songId: songs[0].id!, playerId: first, achievement: 100.1234 },
+      { songId: songs[0].id!, playerId: second, achievement: 99.9876 }
+    ])
+    expect(partial.status).toBe('pending')
+    expect(partial.total1).toBeNull()
+    expect(partial.total2).toBeNull()
+    expect(partial.winnerId).toBeNull()
+    expect(partial.songs[0].score1).toBe(100.1234)
+    expect(partial.songs[0].score2).toBe(99.9876)
+    expect(partial.songs[1].score1).toBeNull()
+    expect(partial.songs[1].score2).toBeNull()
+
+    const draft = saveBroadcastDraft(db, 'results', { matchId: match.id })
+    const draftMatch = (draft.draft as any).match
+    expect(draftMatch.status).toBe('pending')
+    expect(draftMatch.winnerId).toBeNull()
+    expect(draftMatch.songs[0].score1).toBe(100.1234)
+    expect(draftMatch.songs[1].score1).toBeNull()
+    expect(() => confirmMatch(db, match.id)).toThrowError('请先完整录入每首曲目的双方成绩')
+
+    const cleared = saveScores(db, match.id, [
+      { songId: songs[0].id!, playerId: first, achievement: null },
+      { songId: songs[0].id!, playerId: second, achievement: null }
+    ])
+    expect(cleared.songs[0].score1).toBeNull()
+    expect(cleared.songs[0].score2).toBeNull()
+
+    saveScores(db, match.id, [
+      { songId: songs[0].id!, playerId: first, achievement: 100.1234 },
+      { songId: songs[0].id!, playerId: second, achievement: 99.9876 },
+      { songId: songs[1].id!, playerId: first, achievement: 98.5 },
+      { songId: songs[1].id!, playerId: second, achievement: 98 }
+    ])
+    const completed = confirmMatch(db, match.id)
+    expect(completed.status).toBe('completed')
+    expect(completed.winnerId).toBe(first)
+    expect(completed.total1).toBe(198.6234)
+    expect(completed.total2).toBe(197.9876)
+  })
+
   it('草稿与已发布内容互相隔离并增加 revision', () => {
     const [first, second] = addPlayers(2)
     const tournament = createTournament(db, '直播测试', [first, second])

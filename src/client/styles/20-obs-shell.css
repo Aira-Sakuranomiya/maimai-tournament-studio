@@ -1,0 +1,83 @@
+/* OBS canvas */
+
+.obs-viewport {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #02040b;
+  position: relative;
+}
+
+.obs-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: center;
+  background: #090e1e;
+  color: white;
+  overflow: hidden;
+  font-family: "Unbounded Sans","Unbounded","PingFang SC","Microsoft YaHei",sans-serif;
+  font-weight: 400;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 12px solid rgba(255,255,255,.025);
+    pointer-events: none;
+    z-index: 20;
+  }
+}
+
+.obs-empty {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.empty-disc {
+  width: 230px;
+  height: 230px;
+  border: 2px solid var(--p1);
+  border-radius: 50%;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  position: relative;
+  box-shadow: 0 0 80px rgba(var(--p1-rgb),.1);
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 28px;
+    border: 1px dashed rgba(255,255,255,.3);
+    border-radius: 50%;
+    animation: rotate 18s linear infinite;
+  }
+  &::after {
+    inset: 65px;
+    border-style: solid;
+    border-color: var(--p2);
+  }
+  & b {
+    font-size: 30px;
+  }
+}
+
+.obs-empty h1 {
+  font-size: 44px;
+  margin: 35px 0 8px;
+}
+
+.obs-empty p {
+  color: #65718e;
+  letter-spacing: .2em;
+}
+
+.obs-match::after {
+  display: none;
+}

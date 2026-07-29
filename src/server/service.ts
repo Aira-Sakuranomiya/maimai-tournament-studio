@@ -473,16 +473,21 @@ export function saveMatchSongs(db: Db, matchId: number, songs: Omit<MatchSong, '
   return getMatch(db, matchId)
 }
 
-export function saveScores(db: Db, matchId: number, scores: Array<{ songId: number; playerId: number; achievement: number }>) {
+export function saveScores(db: Db, matchId: number, scores: Array<{ songId: number; playerId: number; achievement: number | null }>) {
   const match = getMatch(db, matchId)
   if (match.status !== 'pending') throw Object.assign(new Error('当前对局不能录入成绩'), { statusCode: 409 })
   const validPlayers = new Set([match.player1?.id, match.player2?.id])
   const songs = new Map(match.songs.map((song) => [song.id, song]))
   const upsert = db.prepare(`INSERT INTO scores(match_song_id, player_id, achievement_scaled) VALUES (?, ?, ?)
     ON CONFLICT(match_song_id, player_id) DO UPDATE SET achievement_scaled = excluded.achievement_scaled`)
+  const remove = db.prepare('DELETE FROM scores WHERE match_song_id = ? AND player_id = ?')
   db.transaction(() => {
     for (const item of scores) {
       if (!songs.has(item.songId) || !validPlayers.has(item.playerId)) throw Object.assign(new Error('成绩与当前对局不匹配'), { statusCode: 400 })
+      if (item.achievement == null) {
+        remove.run(item.songId, item.playerId)
+        continue
+      }
       if (!Number.isFinite(item.achievement) || item.achievement < 0 || item.achievement > 101) throw Object.assign(new Error('达成率必须在 0 到 101 之间'), { statusCode: 400 })
       upsert.run(item.songId, item.playerId, Math.round(item.achievement * 10000))
     }

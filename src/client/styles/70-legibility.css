@@ -1,0 +1,294 @@
+/* Legibility pass: the console is used at arm's length and OBS is rendered at 1080p. */
+
+.control-shell {
+  & .brand span {
+    font-size: 10px;
+    letter-spacing: .16em;
+  }
+  & .sidebar nav button {
+    font-size: 14px;
+  }
+  & .sidebar nav button span {
+    font-size: 11px;
+  }
+  & .status-row,
+  & .status-row b,
+  & .sidebar-foot small {
+    font-size: 11px;
+  }
+  & .eyebrow,
+  & .section-heading>div>span,
+  & .panel-title span {
+    font-size: 11px;
+    letter-spacing: .13em;
+  }
+  & .event-chip span,
+  & .event-chip i {
+    font-size: 11px;
+  }
+  & .live-pill {
+    font-size: 11px;
+  }
+  & .metric-grid span {
+    font-size: 10px;
+    letter-spacing: .1em;
+  }
+  & .metric-grid small,
+  & .quick-grid button small {
+    font-size: 12px;
+  }
+  & .section-heading p,
+  & .empty-state p {
+    font-size: 14px;
+  }
+  & .player-card small {
+    font-size: 10px;
+  }
+  & .player-card p {
+    font-size: 12px;
+  }
+  & .card-actions button,
+  & .small-button {
+    font-size: 12px;
+  }
+  & .round-chip,
+  & .selected-broadcast {
+    font-size: 11px;
+  }
+  & .hint {
+    font-size: 12px;
+  }
+  & .match-list>button>i {
+    font-size: 11px;
+  }
+  & .match-list>button span b {
+    font-size: 12px;
+  }
+  & .match-list>button span small {
+    font-size: 11px;
+  }
+  & .side-tag {
+    font-size: 10px;
+  }
+  & .versus-center>span,
+  & .versus-center i {
+    font-size: 11px;
+  }
+  & .search-popover b {
+    font-size: 13px;
+  }
+  & .search-popover small {
+    font-size: 11px;
+  }
+  & .search-popover button {
+    font-size: 10px;
+  }
+  & .song-number {
+    font-size: 11px;
+  }
+  & .chosen-songs b {
+    font-size: 13px;
+  }
+  & .chosen-songs small,
+  & .chosen-songs select {
+    font-size: 11px;
+  }
+  & .chart-choice strong,
+  & .chart-choice span {
+    font-size: 10px;
+  }
+  & .chart-choice i {
+    font-size: 9px;
+  }
+  & .difficulty-line .difficulty-badge {
+    font-size: 9px;
+    min-height: 20px;
+  }
+  & .difficulty-line>strong {
+    font-size: 10px;
+  }
+  & .score-head {
+    font-size: 11px;
+  }
+  & .score-row>span>i {
+    font-size: 10px;
+  }
+  & .score-row>span b {
+    font-size: 12px;
+  }
+  & .score-row>span small {
+    font-size: 10px;
+  }
+  & .score-row input {
+    font-size: 14px;
+  }
+  & .score-row>span:last-child {
+    font-size: 11px;
+  }
+  & .score-row>span small .difficulty-text {
+    font-size: 9px;
+  }
+  & .tie-alert b {
+    font-size: 12px;
+  }
+  & .tie-alert p {
+    font-size: 11px;
+  }
+  & .team-name-editor>span {
+    font-size: 11px;
+  }
+  & .team-member-list b {
+    font-size: 12px;
+  }
+  & .team-member-list small,
+  & .team-empty,
+  & .team-add-row button {
+    font-size: 12px;
+  }
+  & .team-config-center span {
+    font-size: 10px;
+  }
+  & .team-config-center button {
+    font-size: 11px;
+  }
+  & .battle-table-head {
+    font-size: 11px;
+  }
+  & .battle-index {
+    font-size: 11px;
+  }
+  & .row-vs span {
+    font-size: 11px;
+  }
+  & .row-vs b {
+    font-size: 10px;
+  }
+  & .row-buttons button {
+    font-size: 12px;
+  }
+  & .small-empty {
+    font-size: 12px;
+  }
+  & .broadcast-head span {
+    font-size: 10px;
+  }
+  & .broadcast-head b {
+    font-size: 11px;
+  }
+  & .source-url {
+    font-size: 10px;
+  }
+  & .source-url code,
+  & .source-url button {
+    font-size: 11px;
+  }
+  & .toast {
+    font-size: 12px;
+  }
+  & .avatar-wrap label::after {
+    font-size: 10px;
+  }
+}
+
+.obs-stage {
+  & .obs-title>span {
+    font-size: 17px;
+  }
+  & .obs-title p {
+    font-size: 16px;
+  }
+  & .obs-footer {
+    font-size: 14px;
+  }
+}
+
+.obs-songs {
+  & .song-meta>span {
+    font-size: 16px;
+  }
+  & .song-meta>small {
+    font-size: 14px;
+  }
+  & .song-meta p {
+    font-size: 16px;
+  }
+}
+
+.obs-stage {
+  & .obs-difficulty-line>strong {
+    font-size: 18px;
+  }
+  & .obs-difficulty-line>em {
+    font-size: 14px;
+  }
+}
+
+.obs-results {
+  & .result-player small {
+    font-size: 14px;
+  }
+  & .result-label {
+    font-size: 14px;
+  }
+  & .result-row>div>span {
+    font-size: 14px;
+  }
+  & .result-row p small {
+    font-size: 13px;
+  }
+  & .result-row p small .difficulty-text {
+    font-size: 10px;
+  }
+}
+
+.obs-bracket {
+  & .obs-team-roster article>strong {
+    font-size: 15px;
+  }
+  & .obs-team-roster article span b {
+    font-size: 13px;
+  }
+  & .obs-battle-log>h2 {
+    font-size: 14px;
+  }
+  & .obs-battle-log article>span {
+    font-size: 11px;
+  }
+  & .obs-battle-log article>strong {
+    font-size: 15px;
+  }
+  & .obs-battle-log article>i {
+    font-size: 11px;
+  }
+}
+
+.obs-stage {
+  & .bracket-column h3 {
+    font-size: 13px;
+  }
+  & .bracket-column article {
+    font-size: 11px;
+  }
+  & .bracket-column article b {
+    font-size: 10px;
+  }
+}
+
+@media (max-width:1050px) {
+  .control-shell {
+    & .sidebar nav button {
+      font-size: 12px;
+    }
+  }
+}
+
+@media (max-width:700px) {
+  .control-shell {
+    & .sidebar nav button {
+      font-size: 10px;
+    }
+    & .sidebar nav button span {
+      font-size: 9px;
+    }
+  }
+}
