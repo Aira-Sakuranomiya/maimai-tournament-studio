@@ -23,6 +23,8 @@
   & h1 b {
     font-size: 56px;
     color: white;
+    font-family: "Avenir Next",Arial,sans-serif;
+    font-weight: 700;
   }
 }
 
@@ -142,9 +144,10 @@
     gap: 5px;
   }
   & article {
+    position: relative;
     height: 39px;
     display: grid;
-    grid-template-columns: 38px 1fr 55px 1fr;
+    grid-template-columns: minmax(0,1fr) 55px minmax(0,1fr);
     align-items: center;
     gap: 8px;
     padding: 0 10px;
@@ -160,8 +163,13 @@
     border-color: rgba(255,196,86,.35);
   }
   & article>span {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     font-size: 9px;
     color: #66728d;
+    pointer-events: none;
   }
   & article.tiebreak>span {
     color: var(--amber);

@@ -485,15 +485,15 @@
   & .result-row>strong,
   & .result-total>strong,
   & .bracket-column article b {
-    font-family: "Arial Black",Arial,sans-serif;
+    font-family: "Avenir Next",Arial,sans-serif;
     font-style: normal;
-    font-weight: 900;
+    font-weight: 700;
   }
   & .result-row>strong small,
   & .result-total>strong small {
-    font-family: "Arial Black",Arial,sans-serif;
+    font-family: "Avenir Next",Arial,sans-serif;
     font-style: normal;
-    font-weight: 900;
+    font-weight: 700;
   }
 }
 
