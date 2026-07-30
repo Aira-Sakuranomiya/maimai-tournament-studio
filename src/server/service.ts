@@ -663,9 +663,25 @@ export function saveBroadcastDraft(db: Db, channel: BroadcastChannel, options: A
 
 export function publishBroadcast(db: Db, channel: BroadcastChannel) {
   const state = getBroadcastState(db, channel)
-  if (!state.draft) throw Object.assign(new Error('请先更新预览'), { statusCode: 400 })
+  if (!state.draft) throw Object.assign(new Error('请先保存播出内容'), { statusCode: 400 })
   db.prepare('UPDATE broadcast_states SET published_json = draft_json, revision = revision + 1 WHERE channel = ?').run(channel)
   return getBroadcastState(db, channel)
+}
+
+export function refreshBroadcastChannels(db: Db, requestedChannels: BroadcastChannel[]) {
+  const selected = [...new Set(requestedChannels)]
+  const board = getTeamBoard(db)
+  const states: ReturnType<typeof getBroadcastState>[] = []
+  db.transaction(() => {
+    for (const channel of selected) {
+      const options = channel === 'bracket'
+        ? { tournamentId: board.tournament.id }
+        : { matchId: board.currentMatchId }
+      saveBroadcastDraft(db, channel, options)
+      states.push(publishBroadcast(db, channel))
+    }
+  })()
+  return states
 }
 
 export const jacketSourceUrl = (songId: number) => `${LXNS_ASSET_BASE}/jacket/${songId}.png`

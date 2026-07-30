@@ -11,7 +11,7 @@ import { JACKET_DIR, UPLOAD_DIR } from './config.js'
 import {
   addTeamRow, confirmMatch, createTournament, deleteTeamRow, getBracket, getBroadcastState, getMatch,
   getSongCacheInfo, getTeamBoard, getTournament, jacketSourceUrl, listPlayers, listTournaments,
-  publishBroadcast, reopenMatch, resetTeamBoard, saveBroadcastDraft, saveMatchSongs, saveScores,
+  publishBroadcast, refreshBroadcastChannels, reopenMatch, resetTeamBoard, saveBroadcastDraft, saveMatchSongs, saveScores,
   searchSongs, setBracketPairings, setCurrentTeamRow, setTournamentSlots, syncSongs, updateTeamMembers,
   updateTeamRow, updateTeamSettings
 } from './service.js'
@@ -59,6 +59,10 @@ export async function buildApp(options: { database?: string } = {}): Promise<{ a
     if (!body?.name?.trim()) return reply.code(400).send({ message: '请输入玩家名称' })
     const result = db.prepare('UPDATE players SET name = ? WHERE id = ?').run(body.name.trim(), id)
     if (!result.changes) return reply.code(404).send({ message: '玩家不存在' })
+    db.prepare(`
+      UPDATE tournament_participants SET name_snapshot = ?
+      WHERE player_id = ? AND tournament_id IN (SELECT id FROM tournaments WHERE active = 1)
+    `).run(body.name.trim(), id)
     return listPlayers(db).find((player) => player!.id === id)
   })
   app.post('/api/players/:id/avatar', async (request, reply) => {
@@ -71,6 +75,10 @@ export async function buildApp(options: { database?: string } = {}): Promise<{ a
     const previous = db.prepare('SELECT avatar_path FROM players WHERE id = ?').get(id) as { avatar_path?: string } | undefined
     if (!previous) return reply.code(404).send({ message: '玩家不存在' })
     db.prepare('UPDATE players SET avatar_path = ? WHERE id = ?').run(filename, id)
+    db.prepare(`
+      UPDATE tournament_participants SET avatar_snapshot = ?
+      WHERE player_id = ? AND tournament_id IN (SELECT id FROM tournaments WHERE active = 1)
+    `).run(filename, id)
     if (previous.avatar_path) fs.rm(path.join(UPLOAD_DIR, previous.avatar_path), { force: true }, () => {})
     return listPlayers(db).find((player) => player!.id === id)
   })
@@ -134,6 +142,17 @@ export async function buildApp(options: { database?: string } = {}): Promise<{ a
     return reply.type('image/png').send(buffer)
   })
 
+  app.post('/api/broadcast/refresh', async (request, reply) => {
+    const requested = (request.body as { channels?: BroadcastChannel[] })?.channels || []
+    if (!requested.length || requested.some((channel) => !channels.has(channel))) {
+      return reply.code(400).send({ message: '请选择需要同步的直播频道' })
+    }
+    const states = refreshBroadcastChannels(db, requested)
+    for (const state of states) {
+      io.emit('broadcast:update', { channel: state.channel, revision: state.revision, data: state.published })
+    }
+    return { states }
+  })
   app.get('/api/broadcast/:channel', async (request, reply) => {
     const channel = (request.params as any).channel as BroadcastChannel
     if (!channels.has(channel)) return reply.code(404).send({ message: '播出频道不存在' })
@@ -142,9 +161,7 @@ export async function buildApp(options: { database?: string } = {}): Promise<{ a
   app.put('/api/broadcast/:channel/draft', async (request, reply) => {
     const channel = (request.params as any).channel as BroadcastChannel
     if (!channels.has(channel)) return reply.code(404).send({ message: '播出频道不存在' })
-    const state = saveBroadcastDraft(db, channel, request.body as any)
-    io.emit('broadcast:draft', { channel, revision: state.revision, data: state.draft })
-    return state
+    return saveBroadcastDraft(db, channel, request.body as any)
   })
   app.post('/api/broadcast/:channel/publish', async (request, reply) => {
     const channel = (request.params as any).channel as BroadcastChannel

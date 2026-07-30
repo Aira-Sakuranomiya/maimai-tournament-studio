@@ -46,7 +46,7 @@
   }
 }
 
-.preview-frame {
+.broadcast-frame {
   width: 100%;
   aspect-ratio: 16/9;
   overflow: hidden;
@@ -68,18 +68,6 @@
     color: var(--p1);
     font: 600 7px "Space Grotesk";
     padding: 4px 6px;
-  }
-}
-
-.broadcast-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 7px;
-  margin-top: 9px;
-  & button {
-    width: 126px;
-    max-width: calc(50% - 4px);
-    padding: 0 10px;
   }
 }
 

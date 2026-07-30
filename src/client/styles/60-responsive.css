@@ -167,11 +167,7 @@
   .broadcast-card {
     padding: 12px;
   }
-  .broadcast-actions button {
-    width: auto;
-    min-width: 108px;
-  }
-  .preview-frame {
+  .broadcast-frame {
     aspect-ratio: 16/9;
   }
 }

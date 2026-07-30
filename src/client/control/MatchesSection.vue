@@ -107,7 +107,7 @@ function endSongDrag() {
           </div>
           <div v-if="tiePending" class="tie-alert"><span>!</span><div><b>总分完全相同</b><p>本行不会给任何队伍加分，请到“队伍与对战行”添加加赛行并重新选双方选手。</p></div></div>
           <div v-if="selectedMatch.status !== 'completed'" class="score-save-bar">
-            <div><b>已录入 {{ scoreProgress.completed }} / {{ scoreProgress.total }} 首</b><small>每曲结束后先保存，成绩页预览会立即更新；全部完成后再结算胜负。</small></div>
+            <div><b>已录入 {{ scoreProgress.completed }} / {{ scoreProgress.total }} 首</b><small>每曲结束后保存即可立即上屏；全部完成后再结算胜负。</small></div>
             <div class="score-actions">
               <button class="secondary" :disabled="!scoreDirty || busy === 'score-save' || busy === 'score'" @click="savePartialScores">保存成绩修改</button>
               <button class="primary" :disabled="!scoreProgress.allComplete || busy === 'score-save' || busy === 'score'" @click="confirmResult()">确认最终赛果</button>

@@ -35,6 +35,27 @@ describe('REST API 流程', () => {
     expect(arranged.json().matches[0].player1.name).toBe('YELLOW B')
     expect(arranged.json().matches[0].player2.name).toBe('GREEN ACE')
 
+    const synced = await app.inject({
+      method: 'POST',
+      url: '/api/broadcast/refresh',
+      payload: { channels: ['match', 'bracket'] }
+    })
+    expect(synced.statusCode).toBe(200)
+    expect(synced.json().states.map((state: any) => state.channel)).toEqual(['match', 'bracket'])
+    expect(synced.json().states[0].published.match.player2.name).toBe('GREEN ACE')
+
+    await app.inject({
+      method: 'PATCH',
+      url: `/api/players/${players[2].id}`,
+      payload: { name: 'GREEN STAR' }
+    })
+    const playerSynced = await app.inject({
+      method: 'POST',
+      url: '/api/broadcast/refresh',
+      payload: { channels: ['match'] }
+    })
+    expect(playerSynced.json().states[0].published.match.player2.name).toBe('GREEN STAR')
+
     const tiebreak = await app.inject({
       method: 'POST',
       url: '/api/team-board/rows',

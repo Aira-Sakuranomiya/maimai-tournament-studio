@@ -8,7 +8,6 @@ import { difficultyClass, difficultyName } from '../../shared/difficulty'
 const props = defineProps<{ channel: BroadcastChannel }>()
 const payload = ref<any>(null)
 const viewport = ref({ width: window.innerWidth, height: window.innerHeight })
-const preview = new URLSearchParams(location.search).get('preview') === '1'
 let socket: Socket | null = null
 
 const scale = computed(() => Math.min(viewport.value.width / 1920, viewport.value.height / 1080))
@@ -79,9 +78,9 @@ function fit() { viewport.value = { width: window.innerWidth, height: window.inn
 
 onMounted(async () => {
   const state = await api<BroadcastState>(`/api/broadcast/${props.channel}`)
-  payload.value = preview ? state.draft : state.published
+  payload.value = state.published
   socket = io()
-  socket.on(preview ? 'broadcast:draft' : 'broadcast:update', (message: any) => {
+  socket.on('broadcast:update', (message: any) => {
     if (message.channel !== props.channel) return
     payload.value = message.data
   })

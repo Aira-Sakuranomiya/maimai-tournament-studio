@@ -13,8 +13,9 @@ const sections = [
   { id: 'players', label: '玩家库', mark: '02', to: '/control/players', routeName: 'control-players' },
   { id: 'teams', label: '队伍编排', mark: '03', to: '/control/teams', routeName: 'control-teams' },
   { id: 'matches', label: '对局控制', mark: '04', to: '/control/matches', routeName: 'control-matches' },
-  { id: 'broadcast', label: '播出控制', mark: '05', to: '/control/broadcast', routeName: 'control-broadcast' }
+  { id: 'broadcast', label: '播出监看', mark: '05', to: '/control/broadcast', routeName: 'control-broadcast' }
 ]
+const broadcastChannels: BroadcastChannel[] = ['match', 'songs', 'results', 'bracket']
 const route = useRoute()
 const activeSection = computed(() => sections.find((item) => item.routeName === route.name)?.id || 'overview')
 const players = ref<Player[]>([])
@@ -108,14 +109,29 @@ async function run(label: string, task: () => Promise<void>) {
 }
 
 async function loadAll() {
-  const [playerData, boardData, cacheData] = await Promise.all([
+  const [playerData, boardData, cacheData, broadcastStates] = await Promise.all([
     api<Player[]>('/api/players'),
     api<TeamBoard>('/api/team-board'),
-    api<{ count: number; updatedAt: string | null }>('/api/songs/cache')
+    api<{ count: number; updatedAt: string | null }>('/api/songs/cache'),
+    Promise.all(broadcastChannels.map((channel) => api<any>(`/api/broadcast/${channel}`)))
   ])
   players.value = playerData
   songCache.value = cacheData
+  broadcastStates.forEach((state) => { broadcastRevision[state.channel] = state.revision })
   applyTeamBoard(boardData)
+}
+
+async function publishLiveChanges(channels: BroadcastChannel[]) {
+  try {
+    const result = await api<{ states: Array<{ channel: BroadcastChannel; revision: number }> }>(
+      '/api/broadcast/refresh',
+      json('POST', { channels })
+    )
+    result.states.forEach((state) => { broadcastRevision[state.channel] = state.revision })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '未知错误'
+    throw new Error(`内容已保存，但直播画面同步失败：${message}`)
+  }
 }
 
 function applyTeamBoard(board: TeamBoard) {
@@ -182,7 +198,9 @@ async function renamePlayer(player: Player) {
   await run('player', async () => {
     await api(`/api/players/${player.id}`, json('PATCH', { name }))
     players.value = await api<Player[]>('/api/players')
-    notify('玩家名称已更新')
+    await loadTeamBoard()
+    await publishLiveChanges(broadcastChannels)
+    notify('玩家名称已更新并同步直播')
   })
 }
 
@@ -194,7 +212,9 @@ async function uploadAvatar(player: Player, event: Event) {
   await run('avatar', async () => {
     await api(`/api/players/${player.id}/avatar`, { method: 'POST', body: form })
     players.value = await api<Player[]>('/api/players')
-    notify('头像已更新')
+    await loadTeamBoard()
+    await publishLiveChanges(broadcastChannels)
+    notify('头像已更新并同步直播')
   })
 }
 
@@ -215,7 +235,8 @@ async function saveTeamSettings() {
       team1Name: team1Name.value, team1Color: team1Color.value,
       team2Name: team2Name.value, team2Color: team2Color.value
     })))
-    notify('队名与颜色已保存')
+    await publishLiveChanges(broadcastChannels)
+    notify('队名与颜色已保存并同步直播')
   })
 }
 
@@ -224,6 +245,7 @@ async function persistTeamMembers() {
     team1PlayerIds: team1PlayerIds.value,
     team2PlayerIds: team2PlayerIds.value
   })))
+  await publishLiveChanges(['bracket'])
 }
 
 async function addPlayerToTeam(team: 1 | 2) {
@@ -235,7 +257,7 @@ async function addPlayerToTeam(team: 1 | 2) {
     await persistTeamMembers()
     addTeam1PlayerId.value = null
     addTeam2PlayerId.value = null
-    notify(`玩家已加入${team === 1 ? team1Name.value : team2Name.value}`)
+    notify(`玩家已加入${team === 1 ? team1Name.value : team2Name.value}并同步直播`)
   })
 }
 
@@ -244,17 +266,18 @@ async function removePlayerFromTeam(team: 1 | 2, playerId: number) {
     if (team === 1) team1PlayerIds.value = team1PlayerIds.value.filter((id) => id !== playerId)
     else team2PlayerIds.value = team2PlayerIds.value.filter((id) => id !== playerId)
     await persistTeamMembers()
-    notify('队伍名单已更新')
+    notify('队伍名单已更新并同步直播')
   })
 }
 
 async function resetRound() {
   if (!window.confirm(
-    '确定清空本轮并重新开始吗？\n\n双方名单、对战行、曲目、成绩和比分都会清空；玩家库、队名、颜色及已经发布的 OBS 画面不受影响。'
+    '确定清空本轮并重新开始吗？\n\n双方名单、对战行、曲目、成绩和比分都会清空；玩家库、队名和颜色会保留，直播画面将立即同步为空白回合。'
   )) return
   await run('round-reset', async () => {
     applyTeamBoard(await api<TeamBoard>('/api/team-board/reset', { method: 'POST' }))
-    notify('本轮已清空，可以重新分队和编排')
+    await publishLiveChanges(broadcastChannels)
+    notify('本轮已清空并同步直播，可以重新分队和编排')
   })
 }
 
@@ -265,7 +288,8 @@ async function saveTeamRow(match: BracketMatch) {
       player2Id: pairingDraft[match.id]?.player2Id || null,
       isTiebreak: match.isTiebreak
     })))
-    notify('对战行已保存')
+    await publishLiveChanges(broadcastChannels)
+    notify('对战行已保存并同步直播')
   })
 }
 
@@ -280,7 +304,8 @@ async function addTeamMatchRow(isTiebreak = false) {
   await run('row-add', async () => {
     const match = await api<BracketMatch>('/api/team-board/rows', json('POST', { isTiebreak }))
     await loadTeamBoard()
-    notify(isTiebreak ? '加赛行已添加' : '对战行已添加')
+    await publishLiveChanges(['bracket'])
+    notify(isTiebreak ? '加赛行已添加并同步直播' : '对战行已添加并同步直播')
     if (match) pairingDraft[match.id] = { player1Id: null, player2Id: null }
   })
 }
@@ -289,14 +314,16 @@ async function deleteTeamMatchRow(match: BracketMatch) {
   if (!window.confirm(`删除第 ${match.matchIndex + 1} 行？`)) return
   await run('row-delete', async () => {
     applyTeamBoard(await api<TeamBoard>(`/api/team-board/rows/${match.id}`, { method: 'DELETE' }))
-    notify('对战行已删除')
+    await publishLiveChanges(['bracket'])
+    notify('对战行已删除并同步直播')
   })
 }
 
 async function setCurrentRow(match: BracketMatch) {
   await run('current-row', async () => {
     applyTeamBoard(await api<TeamBoard>(`/api/team-board/current/${match.id}`, { method: 'POST' }))
-    notify(`当前已切换到第 ${match.matchIndex + 1} 行`)
+    await publishLiveChanges(broadcastChannels)
+    notify(`当前已切换到第 ${match.matchIndex + 1} 行并同步直播`)
   })
 }
 
@@ -368,7 +395,8 @@ async function saveSongs() {
     }))
     hydrateMatch(updated)
     await loadTournament(updated.tournamentId)
-    notify('曲目配置已保存')
+    await publishLiveChanges(['songs', 'results'])
+    notify('曲目配置已保存并同步直播')
   })
 }
 
@@ -401,17 +429,12 @@ async function saveScoreValues(requireComplete = false) {
   return { updated, completed }
 }
 
-async function refreshResultsDraft(matchId: number) {
-  const state = await api<any>('/api/broadcast/results/draft', json('PUT', { matchId }))
-  broadcastRevision.results = state.revision
-}
-
 async function savePartialScores() {
   await run('score-save', async () => {
     const result = await saveScoreValues(false)
     if (!result) return
-    await refreshResultsDraft(result.updated.id)
-    notify(`已保存 ${result.completed} 首成绩，成绩页预览已更新`)
+    await publishLiveChanges(['results'])
+    notify(`已保存 ${result.completed} 首成绩并同步直播`)
   })
 }
 
@@ -420,10 +443,10 @@ async function confirmResult(manualWinnerId?: number) {
   await run('score', async () => {
     await saveScoreValues(true)
     try {
-      const completedMatch = await api<BracketMatch>(`/api/matches/${selectedMatch.value!.id}/confirm`, json('POST', manualWinnerId ? { manualWinnerId } : {}))
-      await refreshResultsDraft(completedMatch.id)
+      await api<BracketMatch>(`/api/matches/${selectedMatch.value!.id}/confirm`, json('POST', manualWinnerId ? { manualWinnerId } : {}))
       tiePending.value = false
       await loadTournament(selectedMatch.value!.tournamentId)
+      await publishLiveChanges(['results', 'bracket'])
       const completed = selectedMatch.value
       if (completed?.winnerId) notify('本行赛果已确认，队伍比分已更新')
       else {
@@ -452,30 +475,8 @@ async function reopenSelected() {
       await api(`/api/matches/${selectedMatch.value!.id}/reopen`, json('POST', { clearDownstream: true }))
     }
     await loadTournament(selectedMatch.value!.tournamentId)
-    notify('对局已重新打开')
-  })
-}
-
-async function prepareBroadcast(channel: BroadcastChannel) {
-  if (!activeTournament.value) return
-  if (channel !== 'bracket' && !selectedMatch.value) return notify('请先选择一场对局', 'error')
-  await run(`draft-${channel}`, async () => {
-    const body = channel === 'bracket'
-      ? { tournamentId: activeTournament.value!.id }
-      : { matchId: selectedMatch.value!.id, songIds: channel === 'songs' ? chosenSongs.value.map((song) => song.id).filter(Boolean) : undefined }
-    const state = await api<any>(`/api/broadcast/${channel}/draft`, json('PUT', body))
-    broadcastRevision[channel] = state.revision
-    const frame = document.querySelector<HTMLIFrameElement>(`#preview-${channel}`)
-    if (frame) frame.src = `/obs/${channel}?preview=1&t=${Date.now()}`
-    notify(`${channelLabel(channel)}预览已更新`)
-  })
-}
-
-async function publish(channel: BroadcastChannel) {
-  await run(`publish-${channel}`, async () => {
-    const state = await api<any>(`/api/broadcast/${channel}/publish`, { method: 'POST' })
-    broadcastRevision[channel] = state.revision
-    notify(`${channelLabel(channel)}已推送到直播 · R${state.revision}`)
+    await publishLiveChanges(['results', 'bracket'])
+    notify('对局已重新打开并同步直播')
   })
 }
 
@@ -508,7 +509,7 @@ provide(controlContextKey, reactive({
   createPlayer, renamePlayer, uploadAvatar, deletePlayer, saveTeamSettings, addPlayerToTeam,
   removePlayerFromTeam, resetRound, saveTeamRow, teamRowDirty, addTeamMatchRow, deleteTeamMatchRow,
   setCurrentRow, selectMatch, syncSongCache, flattenDifficulties, addSong, removeSong, moveSong, saveSongs,
-  savePartialScores, confirmResult, reopenSelected, prepareBroadcast, publish, copyObsUrl, channelLabel, playerById,
+  savePartialScores, confirmResult, reopenSelected, copyObsUrl, channelLabel, playerById,
   matchLabel, sourceLabel, difficultyClass, difficultyName
 }))
 
