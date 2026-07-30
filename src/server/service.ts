@@ -646,25 +646,16 @@ function buildSnapshot(db: Db, channel: BroadcastChannel, options: AnyRow) {
 }
 
 export function getBroadcastState(db: Db, channel: BroadcastChannel) {
-  const row = db.prepare('SELECT * FROM broadcast_states WHERE channel = ?').get(channel) as AnyRow
+  const row = db.prepare('SELECT published_json FROM broadcast_states WHERE channel = ?').get(channel) as AnyRow
   return {
     channel,
-    revision: row.revision,
-    draft: row.draft_json ? JSON.parse(row.draft_json) : null,
     published: row.published_json ? JSON.parse(row.published_json) : null
   }
 }
 
-export function saveBroadcastDraft(db: Db, channel: BroadcastChannel, options: AnyRow) {
+export function saveBroadcastSnapshot(db: Db, channel: BroadcastChannel, options: AnyRow) {
   const snapshot = buildSnapshot(db, channel, options)
-  db.prepare('UPDATE broadcast_states SET draft_json = ? WHERE channel = ?').run(JSON.stringify(snapshot), channel)
-  return getBroadcastState(db, channel)
-}
-
-export function publishBroadcast(db: Db, channel: BroadcastChannel) {
-  const state = getBroadcastState(db, channel)
-  if (!state.draft) throw Object.assign(new Error('请先保存播出内容'), { statusCode: 400 })
-  db.prepare('UPDATE broadcast_states SET published_json = draft_json, revision = revision + 1 WHERE channel = ?').run(channel)
+  db.prepare('UPDATE broadcast_states SET published_json = ? WHERE channel = ?').run(JSON.stringify(snapshot), channel)
   return getBroadcastState(db, channel)
 }
 
@@ -677,8 +668,7 @@ export function refreshBroadcastChannels(db: Db, requestedChannels: BroadcastCha
       const options = channel === 'bracket'
         ? { tournamentId: board.tournament.id }
         : { matchId: board.currentMatchId }
-      saveBroadcastDraft(db, channel, options)
-      states.push(publishBroadcast(db, channel))
+      states.push(saveBroadcastSnapshot(db, channel, options))
     }
   })()
   return states

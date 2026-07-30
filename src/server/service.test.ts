@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import type { Db } from './db.js'
 import { createDatabase, nextPowerOfTwo } from './db.js'
 import {
-  addTeamRow, confirmMatch, createTournament, getBracket, getMatch, getTeamBoard,
-  publishBroadcast, reopenMatch, saveBroadcastDraft, saveMatchSongs, saveScores,
+  addTeamRow, confirmMatch, createTournament, getBracket, getBroadcastState, getMatch, getTeamBoard,
+  reopenMatch, saveBroadcastSnapshot, saveMatchSongs, saveScores,
   resetTeamBoard, setCurrentTeamRow, setTournamentSlots, updateTeamMembers, updateTeamRow,
   updateTeamSettings
 } from './service.js'
@@ -108,7 +108,7 @@ describe('淘汰树', () => {
 })
 
 describe('播出快照', () => {
-  it('逐曲保存成绩时立即进入结果草稿，最后一曲完成后才结算胜者', () => {
+  it('逐曲保存成绩时可立即更新直播快照，最后一曲完成后才结算胜者', () => {
     const [first, second] = addPlayers(2)
     const tournament = createTournament(db, '逐曲成绩测试', [first, second])
     const match = setTournamentSlots(db, tournament.id, [first, second]).matches[0]
@@ -128,12 +128,12 @@ describe('播出快照', () => {
     expect(partial.songs[1].score1).toBeNull()
     expect(partial.songs[1].score2).toBeNull()
 
-    const draft = saveBroadcastDraft(db, 'results', { matchId: match.id })
-    const draftMatch = (draft.draft as any).match
-    expect(draftMatch.status).toBe('pending')
-    expect(draftMatch.winnerId).toBeNull()
-    expect(draftMatch.songs[0].score1).toBe(100.1234)
-    expect(draftMatch.songs[1].score1).toBeNull()
+    const live = saveBroadcastSnapshot(db, 'results', { matchId: match.id })
+    const liveMatch = (live.published as any).match
+    expect(liveMatch.status).toBe('pending')
+    expect(liveMatch.winnerId).toBeNull()
+    expect(liveMatch.songs[0].score1).toBe(100.1234)
+    expect(liveMatch.songs[1].score1).toBeNull()
     expect(() => confirmMatch(db, match.id)).toThrowError('请先完整录入每首曲目的双方成绩')
 
     const cleared = saveScores(db, match.id, [
@@ -156,16 +156,13 @@ describe('播出快照', () => {
     expect(completed.total2).toBe(197.9876)
   })
 
-  it('草稿与已发布内容互相隔离并增加 revision', () => {
+  it('只保存一份当前直播快照并可在重新读取时恢复', () => {
     const [first, second] = addPlayers(2)
     const tournament = createTournament(db, '直播测试', [first, second])
     const match = setTournamentSlots(db, tournament.id, [first, second]).matches[0]
-    const draft = saveBroadcastDraft(db, 'match', { matchId: match.id })
-    expect(draft.draft).toBeTruthy()
-    expect(draft.published).toBeNull()
-    const published = publishBroadcast(db, 'match')
-    expect(published.revision).toBe(1)
+    const published = saveBroadcastSnapshot(db, 'match', { matchId: match.id })
     expect((published.published as any).tournament.name).toBe('直播测试')
+    expect((getBroadcastState(db, 'match').published as any).match.id).toBe(match.id)
   })
 
   it('曲目快照保留第三首课题曲', () => {
@@ -174,12 +171,12 @@ describe('播出快照', () => {
     const match = setTournamentSlots(db, tournament.id, [first, second]).matches[0]
     saveMatchSongs(db, match.id, [sampleSong(0), sampleSong(1), sampleSong(2)])
     const songs = getMatch(db, match.id).songs
-    const draft = saveBroadcastDraft(db, 'songs', {
+    const published = saveBroadcastSnapshot(db, 'songs', {
       matchId: match.id,
       songIds: songs.map((song) => song.id)
     })
-    expect((draft.draft as any).match.songs).toHaveLength(3)
-    expect((draft.draft as any).match.songs[2].source).toBe('required')
+    expect((published.published as any).match.songs).toHaveLength(3)
+    expect((published.published as any).match.songs[2].source).toBe('required')
   })
 })
 

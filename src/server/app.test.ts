@@ -120,14 +120,12 @@ describe('REST API 流程', () => {
     expect(arranged.statusCode).toBe(200)
     const matchId = arranged.json().matches[0].id
 
-    const preview = await app.inject({
+    const live = await app.inject({
       method: 'PUT',
-      url: '/api/broadcast/match/draft',
+      url: '/api/broadcast/match',
       payload: { matchId }
     })
-    expect(preview.json().published).toBeNull()
-    const live = await app.inject({ method: 'POST', url: '/api/broadcast/match/publish' })
-    expect(live.json().revision).toBe(1)
+    expect(live.statusCode).toBe(200)
     expect(live.json().published.match.player1.name).toBe('ALPHA')
   })
 

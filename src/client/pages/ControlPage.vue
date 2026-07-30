@@ -49,7 +49,6 @@ const appOrigin = window.location.origin
 const busy = ref('')
 const toast = ref<{ message: string; kind: 'ok' | 'error' } | null>(null)
 const tiePending = ref(false)
-const broadcastRevision = reactive<Record<string, number>>({ match: 0, songs: 0, results: 0, bracket: 0 })
 let searchTimer: number | undefined
 
 const pendingMatches = computed(() => bracket.value?.matches || [])
@@ -109,32 +108,39 @@ async function run(label: string, task: () => Promise<void>) {
 }
 
 async function loadAll() {
-  const [playerData, boardData, cacheData, broadcastStates] = await Promise.all([
+  const [playerData, boardData, cacheData] = await Promise.all([
     api<Player[]>('/api/players'),
     api<TeamBoard>('/api/team-board'),
-    api<{ count: number; updatedAt: string | null }>('/api/songs/cache'),
-    Promise.all(broadcastChannels.map((channel) => api<any>(`/api/broadcast/${channel}`)))
+    api<{ count: number; updatedAt: string | null }>('/api/songs/cache')
   ])
   players.value = playerData
   songCache.value = cacheData
-  broadcastStates.forEach((state) => { broadcastRevision[state.channel] = state.revision })
   applyTeamBoard(boardData)
 }
 
 async function publishLiveChanges(channels: BroadcastChannel[]) {
   try {
-    const result = await api<{ states: Array<{ channel: BroadcastChannel; revision: number }> }>(
+    await api(
       '/api/broadcast/refresh',
       json('POST', { channels })
     )
-    result.states.forEach((state) => { broadcastRevision[state.channel] = state.revision })
   } catch (error) {
     const message = error instanceof Error ? error.message : '未知错误'
     throw new Error(`内容已保存，但直播画面同步失败：${message}`)
   }
 }
 
-function applyTeamBoard(board: TeamBoard) {
+function applyTeamBoard(
+  board: TeamBoard,
+  options: { resetPairingDrafts?: boolean; committedPairingIds?: number[] } = {}
+) {
+  const previousPairingDrafts = new Map(
+    Object.entries(pairingDraft).map(([id, draft]) => [
+      Number(id),
+      { player1Id: draft.player1Id ?? null, player2Id: draft.player2Id ?? null }
+    ])
+  )
+  const committedPairingIds = new Set(options.committedPairingIds || [])
   teamBoard.value = board
   activeTournament.value = board.tournament
   bracket.value = { tournament: board.tournament, matches: board.matches }
@@ -153,6 +159,27 @@ function applyTeamBoard(board: TeamBoard) {
     pairingDraft[match.id] = {
       player1Id: match.player1?.id || null,
       player2Id: match.player2?.id || null
+    }
+  }
+  if (!options.resetPairingDrafts) {
+    const team1Ids = new Set(board.members.team1.map((player) => player.id))
+    const team2Ids = new Set(board.members.team2.map((player) => player.id))
+    for (const match of board.matches) {
+      const previous = previousPairingDrafts.get(match.id)
+      if (
+        !previous
+        || committedPairingIds.has(match.id)
+        || match.status === 'completed'
+        || Boolean(match.songs?.length)
+      ) continue
+      pairingDraft[match.id] = {
+        player1Id: previous.player1Id == null || team1Ids.has(previous.player1Id)
+          ? previous.player1Id
+          : pairingDraft[match.id].player1Id,
+        player2Id: previous.player2Id == null || team2Ids.has(previous.player2Id)
+          ? previous.player2Id
+          : pairingDraft[match.id].player2Id
+      }
     }
   }
   selectedMatch.value = board.matches.find((match) => match.id === board.currentMatchId)
@@ -275,7 +302,9 @@ async function resetRound() {
     '确定清空本轮并重新开始吗？\n\n双方名单、对战行、曲目、成绩和比分都会清空；玩家库、队名和颜色会保留，直播画面将立即同步为空白回合。'
   )) return
   await run('round-reset', async () => {
-    applyTeamBoard(await api<TeamBoard>('/api/team-board/reset', { method: 'POST' }))
+    applyTeamBoard(await api<TeamBoard>('/api/team-board/reset', { method: 'POST' }), {
+      resetPairingDrafts: true
+    })
     await publishLiveChanges(broadcastChannels)
     notify('本轮已清空并同步直播，可以重新分队和编排')
   })
@@ -283,11 +312,12 @@ async function resetRound() {
 
 async function saveTeamRow(match: BracketMatch) {
   await run(`row-${match.id}`, async () => {
-    applyTeamBoard(await api<TeamBoard>(`/api/team-board/rows/${match.id}`, json('PUT', {
+    const board = await api<TeamBoard>(`/api/team-board/rows/${match.id}`, json('PUT', {
       player1Id: pairingDraft[match.id]?.player1Id || null,
       player2Id: pairingDraft[match.id]?.player2Id || null,
       isTiebreak: match.isTiebreak
-    })))
+    }))
+    applyTeamBoard(board, { committedPairingIds: [match.id] })
     await publishLiveChanges(broadcastChannels)
     notify('对战行已保存并同步直播')
   })
@@ -503,7 +533,7 @@ provide(controlContextKey, reactive({
   players, activeTournament, bracket, teamBoard, selectedMatch, newPlayerName, pairingDraft,
   team1Name, team1Color, team2Name, team2Color, team1PlayerIds, team2PlayerIds,
   addTeam1PlayerId, addTeam2PlayerId, songQuery, songResults, chosenSongs, songCache,
-  scoreDraft, appOrigin, busy, tiePending, broadcastRevision, pendingMatches, liveMatchCount,
+  scoreDraft, appOrigin, busy, tiePending, pendingMatches, liveMatchCount,
   completedMatchCount, availableForTeam1, availableForTeam2, teamSettingsDirty,
   scoreProgress, scoreDirty,
   createPlayer, renamePlayer, uploadAvatar, deletePlayer, saveTeamSettings, addPlayerToTeam,

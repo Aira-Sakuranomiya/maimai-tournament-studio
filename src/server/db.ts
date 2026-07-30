@@ -99,9 +99,7 @@ export function createDatabase(filename = path.join(DATA_DIR, 'maimai-studio.db'
     );
     CREATE TABLE IF NOT EXISTS broadcast_states (
       channel TEXT PRIMARY KEY,
-      draft_json TEXT,
-      published_json TEXT,
-      revision INTEGER NOT NULL DEFAULT 0
+      published_json TEXT
     );
   `)
   const matchColumns = db.pragma('table_info(matches)') as Array<{ name: string }>
@@ -127,6 +125,10 @@ export function createDatabase(filename = path.join(DATA_DIR, 'maimai-studio.db'
   }
   for (const channel of ['match', 'songs', 'results', 'bracket']) {
     db.prepare('INSERT OR IGNORE INTO broadcast_states(channel) VALUES (?)').run(channel)
+  }
+  const broadcastColumns = db.pragma('table_info(broadcast_states)') as Array<{ name: string }>
+  if (broadcastColumns.some((column) => column.name === 'draft_json')) {
+    db.exec('UPDATE broadcast_states SET published_json = COALESCE(published_json, draft_json)')
   }
   return db
 }

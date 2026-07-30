@@ -84,7 +84,5 @@ export interface SongDifficulty {
 
 export interface BroadcastState<T = unknown> {
   channel: BroadcastChannel
-  revision: number
-  draft: T | null
   published: T | null
 }

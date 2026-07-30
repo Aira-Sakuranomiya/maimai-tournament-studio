@@ -11,7 +11,7 @@ import { JACKET_DIR, UPLOAD_DIR } from './config.js'
 import {
   addTeamRow, confirmMatch, createTournament, deleteTeamRow, getBracket, getBroadcastState, getMatch,
   getSongCacheInfo, getTeamBoard, getTournament, jacketSourceUrl, listPlayers, listTournaments,
-  publishBroadcast, refreshBroadcastChannels, reopenMatch, resetTeamBoard, saveBroadcastDraft, saveMatchSongs, saveScores,
+  refreshBroadcastChannels, reopenMatch, resetTeamBoard, saveBroadcastSnapshot, saveMatchSongs, saveScores,
   searchSongs, setBracketPairings, setCurrentTeamRow, setTournamentSlots, syncSongs, updateTeamMembers,
   updateTeamRow, updateTeamSettings
 } from './service.js'
@@ -149,7 +149,7 @@ export async function buildApp(options: { database?: string } = {}): Promise<{ a
     }
     const states = refreshBroadcastChannels(db, requested)
     for (const state of states) {
-      io.emit('broadcast:update', { channel: state.channel, revision: state.revision, data: state.published })
+      io.emit('broadcast:update', { channel: state.channel, data: state.published })
     }
     return { states }
   })
@@ -158,16 +158,11 @@ export async function buildApp(options: { database?: string } = {}): Promise<{ a
     if (!channels.has(channel)) return reply.code(404).send({ message: '播出频道不存在' })
     return getBroadcastState(db, channel)
   })
-  app.put('/api/broadcast/:channel/draft', async (request, reply) => {
+  app.put('/api/broadcast/:channel', async (request, reply) => {
     const channel = (request.params as any).channel as BroadcastChannel
     if (!channels.has(channel)) return reply.code(404).send({ message: '播出频道不存在' })
-    return saveBroadcastDraft(db, channel, request.body as any)
-  })
-  app.post('/api/broadcast/:channel/publish', async (request, reply) => {
-    const channel = (request.params as any).channel as BroadcastChannel
-    if (!channels.has(channel)) return reply.code(404).send({ message: '播出频道不存在' })
-    const state = publishBroadcast(db, channel)
-    io.emit('broadcast:update', { channel, revision: state.revision, data: state.published })
+    const state = saveBroadcastSnapshot(db, channel, request.body as any)
+    io.emit('broadcast:update', { channel, data: state.published })
     return state
   })
 

@@ -39,11 +39,6 @@
     font: 600 15px "Space Grotesk";
     margin: 4px 0 0;
   }
-  &>b {
-    margin-left: auto;
-    color: #596580;
-    font: 600 9px "Space Grotesk";
-  }
 }
 
 .broadcast-frame {
