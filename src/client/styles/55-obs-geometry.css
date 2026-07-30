@@ -46,7 +46,7 @@
     /* background:
       linear-gradient(90deg,var(--geometry-accent),transparent 18%) top left/260px 2px no-repeat,
       linear-gradient(270deg,var(--geometry-accent),transparent 18%) bottom right/260px 2px no-repeat; */
-    background-color: rgba(0, 0, 0, 0.65);
+    background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(2px);
   }
 
