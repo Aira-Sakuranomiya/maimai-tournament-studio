@@ -43,9 +43,11 @@
     box-shadow:
       inset 0 -3px rgba(255,49,95,.72),
       0 0 24px rgba(0,0,0,.28);
-    background:
+    /* background:
       linear-gradient(90deg,var(--geometry-accent),transparent 18%) top left/260px 2px no-repeat,
-      linear-gradient(270deg,var(--geometry-accent),transparent 18%) bottom right/260px 2px no-repeat;
+      linear-gradient(270deg,var(--geometry-accent),transparent 18%) bottom right/260px 2px no-repeat; */
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
   }
 
   & .geometry-rail {
