@@ -192,7 +192,7 @@
     font-size: 17px;
   }
   & .obs-title p {
-    font-size: 16px;
+    font-size: 20px;
   }
   & .obs-footer {
     font-size: 14px;
@@ -201,13 +201,13 @@
 
 .obs-songs {
   & .song-meta>span {
-    font-size: 16px;
+    font-size: 24px;
   }
   & .song-meta>small {
-    font-size: 14px;
+    font-size: 16px;
   }
   & .song-meta p {
-    font-size: 16px;
+    font-size: 24px;
   }
 }
 
@@ -222,37 +222,40 @@
 
 .obs-results {
   & .result-player small {
-    font-size: 14px;
+    font-size: 16px;
   }
   & .result-label {
-    font-size: 14px;
+    font-size: 20px;
+  }
+  & .result-row p b {
+    font-size: 24px;
   }
   & .result-row p small {
-    font-size: 13px;
+    font-size: 20px;
   }
   & .result-row p small .difficulty-text {
-    font-size: 10px;
+    font-size: 14px;
   }
 }
 
 .obs-bracket {
   & .obs-team-roster article>strong {
-    font-size: 15px;
+    font-size: 18px;
   }
   & .obs-team-roster article span b {
-    font-size: 13px;
+    font-size: 15px;
   }
   & .obs-battle-log>h2 {
     font-size: 14px;
   }
   & .obs-battle-log article>span {
-    font-size: 11px;
+    font-size: 13px;
   }
   & .obs-battle-log article>strong {
-    font-size: 15px;
+    font-size: 18px;
   }
   & .obs-battle-log article>i {
-    font-size: 11px;
+    font-size: 13px;
   }
 }
 

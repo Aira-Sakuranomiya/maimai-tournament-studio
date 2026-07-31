@@ -13,7 +13,8 @@
   & h1 {
     font-size: 46px;
     margin: 9px 0 5px;
-    letter-spacing: -.03em;
+    /* letter-spacing: -.03em; */
+    font-weight: 900;
   }
   & p {
     margin: 0;

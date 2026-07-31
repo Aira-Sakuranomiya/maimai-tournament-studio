@@ -15,13 +15,13 @@
   }
   & h1 em {
     font-style: normal;
-    font-size: 36px;
+    font-size: 42px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   & h1 b {
-    font-size: 56px;
+    font-size: 64px;
     color: white;
     font-family: "Avenir Next",Arial,sans-serif;
     font-weight: 700;
@@ -57,7 +57,7 @@
     display: flex;
     align-items: end;
     margin: 0 0 16px;
-    font-size: 25px;
+    font-size: 30px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -79,12 +79,16 @@
     order: -1;
     margin: 0 auto 0 0;
   }
-  &>div {
+  &>.roster-viewport {
+    height: calc(100% - 54px);
+    overflow: hidden;
+  }
+  & .roster-track {
     display: grid;
-    gap: 6px;
+    gap: 7px;
   }
   & article {
-    height: 37px;
+    height: 43px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -97,8 +101,8 @@
     justify-content: flex-end;
   }
   & article>span {
-    width: 29px;
-    height: 29px;
+    width: 35px;
+    height: 35px;
     flex: none;
     border-radius: 50%;
     display: grid;
@@ -118,11 +122,11 @@
     height: 100%;
   }
   & article span b {
-    font-size: 11px;
+    font-size: 15px;
   }
   & article>strong {
     min-width: 0;
-    font-size: 13px;
+    font-size: 18px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -131,6 +135,7 @@
 
 .obs-battle-log {
   min-width: 0;
+  height: 100%;
   &>h2 {
     text-align: center;
     height: 32px;
@@ -139,13 +144,17 @@
     font-size: 11px;
     letter-spacing: .16em;
   }
-  &>div {
+  &>.battle-log-viewport {
+    height: 100%;
+    overflow: hidden;
+  }
+  & .battle-log-track {
     display: grid;
-    gap: 5px;
+    gap: 6px;
   }
   & article {
     position: relative;
-    height: 39px;
+    height: 45px;
     display: grid;
     grid-template-columns: minmax(0,1fr) 55px minmax(0,1fr);
     align-items: center;
@@ -167,7 +176,7 @@
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 9px;
+    font-size: 13px;
     color: #66728d;
     pointer-events: none;
   }
@@ -175,7 +184,7 @@
     color: var(--amber);
   }
   & article>strong {
-    font-size: 13px;
+    font-size: 18px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -190,7 +199,7 @@
   & article>i {
     text-align: center;
     font-style: normal;
-    font-size: 8px;
+    font-size: 13px;
     color: #66728d;
   }
   & article.current>i {
@@ -198,5 +207,34 @@
   }
   & article.completed:not(.current) {
     opacity: .72;
+  }
+}
+
+.roster-track {
+  --scroll-window: 658px;
+}
+
+.battle-log-track {
+  --scroll-window: 760px;
+}
+
+.roster-track.auto-scroll,
+.battle-log-track.auto-scroll {
+  animation: obs-list-auto-scroll var(--auto-scroll-duration) ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes obs-list-auto-scroll {
+  0%,
+  8% {
+    transform: translateY(0);
+  }
+  46%,
+  54% {
+    transform: translateY(calc(-100% + var(--scroll-window)));
+  }
+  92%,
+  100% {
+    transform: translateY(0);
   }
 }

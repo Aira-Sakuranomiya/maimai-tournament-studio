@@ -115,6 +115,7 @@
     }
     & h2 {
       text-shadow: 0 3px #000;
+      font-weight: 900;
     }
     & p {
       color: rgba(255,255,255,.72);
@@ -475,8 +476,7 @@
 .obs-stage {
   &,
   & * {
-    font-family: "Unbounded Sans","Unbounded","PingFang SC","Microsoft YaHei",sans-serif;
-    font-weight: 400;
+    font-family: "HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
   }
   & .difficulty-badge,
   & .difficulty-text {

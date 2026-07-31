@@ -59,7 +59,7 @@ function endSongDrag() {
             <div v-if="songResults.length" class="search-popover">
               <article v-for="song in songResults" :key="song.id">
                 <img :src="`/api/songs/${song.id}/jacket`" />
-                <div><b>{{ song.title }}</b><small>{{ song.artist }}</small><p><button v-for="chart in flattenDifficulties(song)" :key="`${chart.type}-${chart.difficulty}`" class="chart-choice" :class="difficultyClass(chart.difficulty)" @click="addSong(song, chart)"><strong>{{ difficultyName(chart.difficulty) }}</strong><span>LV {{ chart.level }}</span><i>{{ chart.type.toUpperCase() }}</i></button></p></div>
+                <div><b>{{ song.title }}</b><small>{{ song.artist }}</small><p><button v-for="chart in flattenDifficulties(song)" :key="`${chart.type}-${chart.difficulty}`" class="chart-choice" :class="difficultyClass(chart.difficulty)" @click="addSong(song, chart)"><strong>{{ difficultyName(chart.difficulty) }}</strong><span>LV{{ chart.level }}</span><i>{{ chart.type.toUpperCase() }}</i></button></p></div>
               </article>
             </div>
           </div>
@@ -86,7 +86,7 @@ function endSongDrag() {
               </div>
               <span class="song-number">{{ String(index + 1).padStart(2, '0') }}</span>
               <img :src="song.jacketUrl" />
-              <div class="song-detail"><b>{{ song.title }}</b><small>{{ song.artist }} · {{ song.chartType.toUpperCase() }}</small><span class="difficulty-line"><i class="difficulty-badge" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><strong>LV {{ song.level }}</strong></span></div>
+              <div class="song-detail"><b>{{ song.title }}</b><small>{{ song.artist }} · {{ song.chartType.toUpperCase() }}</small><span class="difficulty-line"><i class="difficulty-badge" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><strong>LV{{ song.level }}</strong></span></div>
               <select v-model="song.source" :disabled="selectedMatch.status === 'completed'"><option value="1p">1P 选曲</option><option value="2p">2P 选曲</option><option value="required">课题曲</option><option value="tiebreak">加赛曲</option></select>
               <button v-if="selectedMatch.status !== 'completed'" class="icon-danger" @click="removeSong(index)">×</button>
             </article>
@@ -100,7 +100,7 @@ function endSongDrag() {
           <div class="score-table">
             <div class="score-head"><span>曲目</span><b class="p1-text">{{ selectedMatch.player1?.name }}</b><b class="p2-text">{{ selectedMatch.player2?.name }}</b></div>
             <div v-for="(song, index) in chosenSongs" :key="song.id" class="score-row">
-              <span><i>{{ index + 1 }}</i><b>{{ song.title }}</b><small>{{ sourceLabel(song.source) }} · <em class="difficulty-text" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</em> · LV {{ song.level }}</small></span>
+              <span><i>{{ index + 1 }}</i><b>{{ song.title }}</b><small>{{ sourceLabel(song.source) }} · <em class="difficulty-text" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</em> · LV{{ song.level }}</small></span>
               <label><input v-model="scoreDraft[`${song.id}-${selectedMatch.player1?.id}`]" type="number" min="0" max="101" step="0.0001" :disabled="selectedMatch.status === 'completed'" /><em>%</em></label>
               <label><input v-model="scoreDraft[`${song.id}-${selectedMatch.player2?.id}`]" type="number" min="0" max="101" step="0.0001" :disabled="selectedMatch.status === 'completed'" /><em>%</em></label>
             </div>

@@ -18,7 +18,7 @@
   background: #090e1e;
   color: white;
   overflow: hidden;
-  font-family: "Unbounded Sans","Unbounded","PingFang SC","Microsoft YaHei",sans-serif;
+  font-family: "HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
   font-weight: 400;
   &::after {
     content: "";

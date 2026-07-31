@@ -32,13 +32,7 @@ const rounds = computed(() => {
   return [...grouped.entries()].map(([index, matches]) => ({ index, matches }))
 })
 const boardMatches = computed(() => {
-  const matches = payload.value?.matches || []
-  if (matches.length <= 16) return matches
-  const recent = matches.slice(-16)
-  const current = matches.find((match: any) => match.id === payload.value?.currentMatchId)
-  return current && !recent.some((match: any) => match.id === current.id)
-    ? [current, ...recent.slice(1)]
-    : recent
+  return payload.value?.matches || []
 })
 const resultTotals = computed(() => {
   const match = payload.value?.match
@@ -73,6 +67,9 @@ function playerNameStyle(name: string | undefined) {
 }
 function sourceLabel(source: string) {
   return ({ '1p': '1P PICK', '2p': '2P PICK', required: '课题曲', tiebreak: 'TIEBREAK' } as any)[source] || source
+}
+function autoScrollStyle(itemCount: number) {
+  return { '--auto-scroll-duration': `${Math.max(18, itemCount * 1.25)}s` }
 }
 function fit() { viewport.value = { width: window.innerWidth, height: window.innerHeight } }
 
@@ -137,7 +134,7 @@ onBeforeUnmount(() => {
         <div class="obs-song-grid" :class="{ single: payload.match.songs.length === 1, triple: payload.match.songs.length === 3, many: payload.match.songs.length > 3 }">
           <article v-for="song in payload.match.songs" :key="song.id" :class="`source-${song.source}`">
             <div class="jacket-frame"><img :src="song.jacketUrl" /></div>
-            <div class="song-meta"><span :class="`source-${song.source}`">{{ sourceLabel(song.source) }}</span><small class="obs-difficulty-line"><i class="difficulty-badge" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><strong>LV {{ song.level }}</strong><em>{{ song.chartType.toUpperCase() }}</em></small><h2>{{ song.title }}</h2><p>{{ song.artist }}</p></div>
+            <div class="song-meta"><span :class="`source-${song.source}`">{{ sourceLabel(song.source) }}</span><small class="obs-difficulty-line"><i class="difficulty-badge" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><strong>LV{{ song.level }}</strong><em>{{ song.chartType.toUpperCase() }}</em></small><h2>{{ song.title }}</h2><p>{{ song.artist }}</p></div>
           </article>
         </div>
         <footer class="obs-footer"><span>SELECTED TRACKS</span><i></i><b>{{ payload.match.songs.length }} SONG{{ payload.match.songs.length === 1 ? '' : 'S' }}</b><i></i><span>GET READY</span></footer>
@@ -147,13 +144,13 @@ onBeforeUnmount(() => {
         <header class="obs-title compact"><span>MATCH RESULT</span><h1>本轮成绩</h1><p>{{ matchLabel(payload.match) }} · {{ teamName(1) }} VS {{ teamName(2) }}</p></header>
         <div class="result-board">
           <div class="result-players">
-            <div class="result-player one"><img v-if="payload.match.player1?.avatarUrl" :src="payload.match.player1.avatarUrl" /><span><small>{{ teamName(1) }} · 1P</small><b>{{ payload.match.player1?.name }}</b></span></div>
+            <div class="result-player one"><img v-if="payload.match.player1?.avatarUrl" :src="payload.match.player1.avatarUrl" /><span><small>{{ teamName(1) }}</small><b>{{ payload.match.player1?.name }}</b></span></div>
             <div class="result-label">VS</div>
-            <div class="result-player two"><span><small>{{ teamName(2) }} · 2P</small><b>{{ payload.match.player2?.name }}</b></span><img v-if="payload.match.player2?.avatarUrl" :src="payload.match.player2.avatarUrl" /></div>
+            <div class="result-player two"><span><small>{{ teamName(2) }}</small><b>{{ payload.match.player2?.name }}</b></span><img v-if="payload.match.player2?.avatarUrl" :src="payload.match.player2.avatarUrl" /></div>
           </div>
           <div class="result-row" v-for="song in payload.match.songs" :key="song.id" :class="`source-${song.source}`">
             <strong class="one">{{ song.score1 == null ? '—' : Number(song.score1).toFixed(4) }}<small>%</small></strong>
-            <div class="result-song-card"><img :src="song.jacketUrl" /><p><b>{{ song.title }}</b><small><span>{{ sourceLabel(song.source) }}</span><i class="difficulty-text" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><span>LV {{ song.level }}</span></small></p></div>
+            <div class="result-song-card"><img :src="song.jacketUrl" /><p><b>{{ song.title }}</b><small><span>{{ sourceLabel(song.source) }}</span><i class="difficulty-text" :class="difficultyClass(song.levelIndex)">{{ difficultyName(song.levelIndex) }}</i><span>LV{{ song.level }}</span></small></p></div>
             <strong class="two">{{ song.score2 == null ? '—' : Number(song.score2).toFixed(4) }}<small>%</small></strong>
           </div>
           <div class="result-total">
@@ -185,30 +182,36 @@ onBeforeUnmount(() => {
         <div class="obs-team-board">
           <section class="obs-team-roster one">
             <h2>{{ teamName(1) }}</h2>
-            <div>
-              <article v-for="player in payload.members.team1" :key="player.id">
-                <span><img v-if="player.avatarUrl" :src="player.avatarUrl" /><b v-else>{{ player.name?.[0] }}</b></span><strong>{{ player.name }}</strong>
-              </article>
+            <div class="roster-viewport">
+              <div class="roster-track" :class="{ 'auto-scroll': payload.members.team1.length > 13 }" :style="autoScrollStyle(payload.members.team1.length)">
+                <article v-for="player in payload.members.team1" :key="player.id">
+                  <span><img v-if="player.avatarUrl" :src="player.avatarUrl" /><b v-else>{{ player.name?.[0] }}</b></span><strong>{{ player.name }}</strong>
+                </article>
+              </div>
             </div>
           </section>
 
           <section class="obs-battle-log">
-            <div>
-              <article v-for="match in boardMatches" :key="match.id" :class="{ current: payload.currentMatchId === match.id, completed: match.status === 'completed', tiebreak: match.isTiebreak }">
-                <span>{{ match.isTiebreak ? 'TB' : String(match.matchIndex + 1).padStart(2, '0') }}</span>
-                <strong class="one" :class="{ winner: match.winnerId === match.player1?.id }">{{ match.player1?.name || '待选择' }}</strong>
-                <i>{{ match.status === 'completed' ? (match.winnerId ? 'DONE' : 'DRAW') : payload.currentMatchId === match.id ? 'LIVE' : 'VS' }}</i>
-                <strong class="two" :class="{ winner: match.winnerId === match.player2?.id }">{{ match.player2?.name || '待选择' }}</strong>
-              </article>
+            <div class="battle-log-viewport">
+              <div class="battle-log-track" :class="{ 'auto-scroll': boardMatches.length > 15 }" :style="autoScrollStyle(boardMatches.length)">
+                <article v-for="match in boardMatches" :key="match.id" :class="{ current: payload.currentMatchId === match.id, completed: match.status === 'completed', tiebreak: match.isTiebreak }">
+                  <span>{{ match.isTiebreak ? 'TB' : String(match.matchIndex + 1).padStart(2, '0') }}</span>
+                  <strong class="one" :class="{ winner: match.winnerId === match.player1?.id }">{{ match.player1?.name || '待选择' }}</strong>
+                  <i>{{ match.status === 'completed' ? (match.winnerId ? 'DONE' : 'DRAW') : payload.currentMatchId === match.id ? 'LIVE' : 'VS' }}</i>
+                  <strong class="two" :class="{ winner: match.winnerId === match.player2?.id }">{{ match.player2?.name || '待选择' }}</strong>
+                </article>
+              </div>
             </div>
           </section>
 
           <section class="obs-team-roster two">
             <h2>{{ teamName(2) }}</h2>
-            <div>
-              <article v-for="player in payload.members.team2" :key="player.id">
-                <strong>{{ player.name }}</strong><span><img v-if="player.avatarUrl" :src="player.avatarUrl" /><b v-else>{{ player.name?.[0] }}</b></span>
-              </article>
+            <div class="roster-viewport">
+              <div class="roster-track" :class="{ 'auto-scroll': payload.members.team2.length > 13 }" :style="autoScrollStyle(payload.members.team2.length)">
+                <article v-for="player in payload.members.team2" :key="player.id">
+                  <strong>{{ player.name }}</strong><span><img v-if="player.avatarUrl" :src="player.avatarUrl" /><b v-else>{{ player.name?.[0] }}</b></span>
+                </article>
+              </div>
             </div>
           </section>
         </div>
