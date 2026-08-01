@@ -97,6 +97,11 @@
   --rules-accent: #f5c84c;
   display: flex;
   flex-direction: column;
+  background:
+    linear-gradient(135deg,rgba(245,200,76,.13),transparent 38%),
+    linear-gradient(135deg,transparent 0 66%,rgba(245,200,76,.08) 66% 82%,transparent 82%),
+    repeating-linear-gradient(135deg,transparent 0 42px,rgba(245,200,76,.035) 42px 44px),
+    rgba(7,3,9,.82);
   & p {
     margin: auto 0;
     font-size: 29px;
