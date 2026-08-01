@@ -2,7 +2,7 @@
 import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { api, ApiError, json } from '../api'
-import type { BracketMatch, BroadcastChannel, MatchSong, Player, SongSearchResult, TeamBoard, Tournament } from '../../shared/types'
+import type { BracketMatch, BroadcastChannel, MatchSong, ObsChannel, Player, SongSearchResult, TeamBoard, Tournament } from '../../shared/types'
 import { difficultyClass, difficultyName } from '../../shared/difficulty'
 import { controlContextKey } from '../control/context'
 
@@ -510,7 +510,7 @@ async function reopenSelected() {
   })
 }
 
-async function copyObsUrl(channel: BroadcastChannel) {
+async function copyObsUrl(channel: ObsChannel) {
   try {
     await window.navigator.clipboard.writeText(`${appOrigin}/obs/${channel}`)
     notify('OBS 地址已复制')
@@ -519,8 +519,8 @@ async function copyObsUrl(channel: BroadcastChannel) {
   }
 }
 
-function channelLabel(channel: BroadcastChannel) {
-  return ({ match: '主界面', songs: '曲目展示', results: '成绩页', bracket: '队伍战况' })[channel]
+function channelLabel(channel: ObsChannel) {
+  return ({ match: '主界面', songs: '曲目展示', results: '成绩页', bracket: '队伍战况', rules: '游戏规则' })[channel]
 }
 
 function playerById(id: number | null) { return players.value.find((player) => player.id === id) }

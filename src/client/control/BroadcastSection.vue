@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { toRefs } from 'vue'
-import type { BroadcastChannel } from '../../shared/types'
+import type { ObsChannel } from '../../shared/types'
 import { useControlContext } from './context'
 
 const {
   selectedMatch, appOrigin, channelLabel, copyObsUrl
 } = toRefs(useControlContext())
 
-const channels: BroadcastChannel[] = ['match', 'songs', 'results', 'bracket']
+const channels: ObsChannel[] = ['match', 'songs', 'results', 'bracket', 'rules']
 </script>
 
 <template>

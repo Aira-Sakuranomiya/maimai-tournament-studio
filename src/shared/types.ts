@@ -1,4 +1,5 @@
 export type BroadcastChannel = 'match' | 'songs' | 'results' | 'bracket'
+export type ObsChannel = BroadcastChannel | 'rules'
 export type SongSource = '1p' | '2p' | 'required' | 'tiebreak'
 export type MatchStatus = 'locked' | 'pending' | 'completed' | 'bye'
 

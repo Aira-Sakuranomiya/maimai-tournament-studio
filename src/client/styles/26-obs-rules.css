@@ -1,0 +1,124 @@
+/* Static OBS rules board. Text mirrors the provided competition copy verbatim. */
+
+.rules-board {
+  position: absolute;
+  z-index: 4;
+  inset: 68px 92px 64px;
+  display: grid;
+  grid-template-rows: 224px minmax(0,1fr);
+  gap: 22px;
+}
+
+.rules-panel {
+  --rules-accent: #ff315f;
+  position: relative;
+  border: 1px solid rgba(255,255,255,.38);
+  background:
+    linear-gradient(135deg,color-mix(in srgb,var(--rules-accent) 13%,transparent),transparent 38%),
+    rgba(7,3,9,.82);
+  box-shadow: 10px 10px 0 rgba(255,49,95,.1);
+  overflow: hidden;
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+  }
+  &::before {
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background: var(--rules-accent);
+  }
+  &::after {
+    right: 0;
+    bottom: 0;
+    width: 150px;
+    height: 22px;
+    opacity: .48;
+    background: repeating-linear-gradient(135deg,var(--rules-accent) 0 3px,transparent 3px 10px);
+    clip-path: polygon(18% 0,100% 0,100% 100%,0 100%);
+  }
+  & h1,
+  & h2,
+  & p {
+    position: relative;
+    z-index: 1;
+  }
+  & h1,
+  & h2 {
+    color: #fff;
+    text-shadow: 3px 3px 0 rgba(255,49,95,.22);
+  }
+}
+
+.rules-time {
+  display: grid;
+  grid-template-columns: 300px minmax(0,1fr);
+  align-items: center;
+  padding: 34px 54px;
+  & h1 {
+    margin: 0;
+    font-size: 50px;
+  }
+  &>div {
+    display: grid;
+    gap: 18px;
+    padding-left: 42px;
+    border-left: 2px solid rgba(255,255,255,.28);
+  }
+  & p {
+    margin: 0;
+    font-size: 25px;
+    line-height: 1.55;
+  }
+}
+
+.rules-main-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 560px minmax(0,1fr);
+  gap: 22px;
+}
+
+.rules-fun,
+.rules-general {
+  padding: 36px 42px;
+  & h2 {
+    margin: 0 0 28px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--rules-accent);
+    font-size: 38px;
+  }
+}
+
+.rules-fun {
+  --rules-accent: #f5c84c;
+  display: flex;
+  flex-direction: column;
+  & p {
+    margin: auto 0;
+    font-size: 29px;
+    line-height: 1.85;
+  }
+}
+
+.rules-general {
+  --rules-accent: #ff315f;
+  &>div {
+    display: grid;
+    gap: 10px;
+  }
+  & p {
+    margin: 0;
+    padding: 14px 18px;
+    border-left: 2px solid rgba(255,255,255,.22);
+    background: rgba(255,255,255,.035);
+    font-size: 21px;
+    line-height: 1.55;
+  }
+  & strong {
+    color: #ff6b88;
+  }
+}

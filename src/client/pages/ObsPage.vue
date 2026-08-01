@@ -2,10 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { io, type Socket } from 'socket.io-client'
 import { api } from '../api'
-import type { BroadcastChannel, BroadcastState } from '../../shared/types'
+import type { BroadcastState, ObsChannel } from '../../shared/types'
 import { difficultyClass, difficultyName } from '../../shared/difficulty'
 
-const props = defineProps<{ channel: BroadcastChannel }>()
+const props = defineProps<{ channel: ObsChannel }>()
 const payload = ref<any>(null)
 const viewport = ref({ width: window.innerWidth, height: window.innerHeight })
 let socket: Socket | null = null
@@ -74,13 +74,15 @@ function autoScrollStyle(itemCount: number) {
 function fit() { viewport.value = { width: window.innerWidth, height: window.innerHeight } }
 
 onMounted(async () => {
-  const state = await api<BroadcastState>(`/api/broadcast/${props.channel}`)
-  payload.value = state.published
-  socket = io()
-  socket.on('broadcast:update', (message: any) => {
-    if (message.channel !== props.channel) return
-    payload.value = message.data
-  })
+  if (props.channel !== 'rules') {
+    const state = await api<BroadcastState>(`/api/broadcast/${props.channel}`)
+    payload.value = state.published
+    socket = io()
+    socket.on('broadcast:update', (message: any) => {
+      if (message.channel !== props.channel) return
+      payload.value = message.data
+    })
+  }
   window.addEventListener('resize', fit)
 })
 onBeforeUnmount(() => {
@@ -107,7 +109,35 @@ onBeforeUnmount(() => {
         <i class="geometry-bars bars-right"></i>
       </div>
 
-      <div v-if="!payload" class="obs-empty">
+      <template v-if="channel === 'rules'">
+        <main class="rules-board">
+          <section class="rules-panel rules-time">
+            <h1>比赛时间</h1>
+            <div>
+              <p>•　娱乐赛：13:00起，结束后立即开始一般赛。</p>
+              <p>•　一般赛：不晚于15:00开始，最晚19:00结束。</p>
+            </div>
+          </section>
+          <div class="rules-main-grid">
+            <section class="rules-panel rules-fun">
+              <h2>娱乐赛</h2>
+              <p>随机或指定1v1匹配，各选一首自选曲，不设胜负，参赛即获参与奖。</p>
+            </section>
+            <section class="rules-panel rules-general">
+              <h2>一般赛（淘汰制团队赛）</h2>
+              <div>
+                <p><strong>1. 初始分组：</strong>现场抽签将所有选手均分为黄、绿两队，同段位选手分属不同队伍。</p>
+                <p><strong>2. 对战方式：</strong>同段位1v1，每场各选一首自选曲（共2首），胜者为本队积1分。</p>
+                <p><strong>3. 晋级规则：</strong>获胜队伍整队晋级，并再次抽签均分为两队，继续按同段位对战。重复此过程，直至决出总冠军。</p>
+                <p><strong>4. 决赛阶段：</strong>自第二轮起，每场仅比1首，曲目由运营组指定。</p>
+                <p><strong>5. 加时赛：</strong>若两队总积分持平（如8:8），双方各派本队Rating最高的选手出战，加赛1首中难度（12+ ~ 13+）运营指定曲，一局定胜。</p>
+              </div>
+            </section>
+          </div>
+        </main>
+      </template>
+
+      <div v-else-if="!payload" class="obs-empty">
         <div class="empty-disc"><i></i><b>WAIT</b></div>
         <h1>等待导播推送</h1><p>STANDING BY FOR DIRECTOR SIGNAL</p>
       </div>

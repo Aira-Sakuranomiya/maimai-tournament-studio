@@ -29,7 +29,8 @@ const router = createRouter({
     { path: '/obs/match', component: ObsPage, props: { channel: 'match' } },
     { path: '/obs/songs', component: ObsPage, props: { channel: 'songs' } },
     { path: '/obs/results', component: ObsPage, props: { channel: 'results' } },
-    { path: '/obs/bracket', component: ObsPage, props: { channel: 'bracket' } }
+    { path: '/obs/bracket', component: ObsPage, props: { channel: 'bracket' } },
+    { path: '/obs/rules', component: ObsPage, props: { channel: 'rules' } }
   ]
 })
 
