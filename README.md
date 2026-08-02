@@ -1,4 +1,6 @@
-# MADMAI.wav Tournament Studio
+# maimai Tournament Studio
+
+给 MAIMAD.wav 比赛设计的信息展示系统，使用模型：GPT 5.6 Sol。[实际效果展示](https://www.bilibili.com/video/av117021249378901/?p=2)
 
 面向 maimai 两队赛制直播的本地导播控制台。Vue 控制台、REST API、Socket.IO 实时播出和 SQLite 数据库由同一个 Node 项目提供。
 
@@ -33,6 +35,7 @@ npm start
 - `http://localhost:8787/obs/match`
 - `http://localhost:8787/obs/songs`
 - `http://localhost:8787/obs/results`
+- `http://localhost:8787/obs/rules`
 - `http://localhost:8787/obs/bracket`（两队名单、总比分与对战行战况）
 
 OBS 浏览器源建议设置为 1920 × 1080。局域网中的另一台设备使用运行服务器的局域网 IP 替换 `localhost`。
