@@ -457,20 +457,11 @@ export function deleteTeamRow(db: Db, matchId: number) {
   const board = getTeamBoard(db)
   const match = board.matches.find((item) => item.id === matchId)
   if (!match) throw Object.assign(new Error('对战行不存在'), { statusCode: 404 })
+  if (match.status === 'completed' || match.songs?.length) throw Object.assign(new Error('已有曲目或成绩的行不能删除'), { statusCode: 409 })
   db.transaction(() => {
-    const next = db.prepare(`
-      SELECT id FROM matches
-      WHERE tournament_id = ? AND round_index = ? AND id != ?
-      ORDER BY ABS(match_index - ?), match_index, id
-      LIMIT 1
-    `).get(board.tournament.id, match.roundIndex, matchId, match.matchIndex) as AnyRow | undefined
     db.prepare('DELETE FROM matches WHERE id = ?').run(matchId)
+    const next = db.prepare('SELECT id FROM matches WHERE tournament_id = ? ORDER BY match_index, id LIMIT 1').get(board.tournament.id) as AnyRow | undefined
     if (board.currentMatchId === matchId) db.prepare('UPDATE tournaments SET current_match_id = ? WHERE id = ?').run(next?.id || null, board.tournament.id)
-    const remaining = db.prepare(`
-      SELECT id FROM matches WHERE tournament_id = ? AND round_index = ? ORDER BY match_index, id
-    `).all(board.tournament.id, match.roundIndex) as AnyRow[]
-    const compactIndex = db.prepare('UPDATE matches SET match_index = ? WHERE id = ?')
-    remaining.forEach((row, index) => compactIndex.run(index, row.id))
   })()
   return getTeamBoard(db)
 }
@@ -486,9 +477,9 @@ export function saveMatchSongs(db: Db, matchId: number, songs: Omit<MatchSong, '
   const match = getMatch(db, matchId)
   if (match.status === 'locked' || match.status === 'bye') throw Object.assign(new Error('当前对局尚不可编辑'), { statusCode: 409 })
   if (match.status === 'completed') throw Object.assign(new Error('请先重新打开已确认对局'), { statusCode: 409 })
+  if (!songs.length) throw Object.assign(new Error('至少选择一首曲目'), { statusCode: 400 })
   db.transaction(() => {
     db.prepare('DELETE FROM match_songs WHERE match_id = ?').run(matchId)
-    db.prepare('UPDATE matches SET winner_id = NULL, total1 = NULL, total2 = NULL, manual_winner = 0 WHERE id = ?').run(matchId)
     const insert = db.prepare(`
       INSERT INTO match_songs(match_id, position, song_id, title, artist, jacket_url, chart_type, level_index, level, source)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

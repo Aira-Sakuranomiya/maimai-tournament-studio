@@ -92,7 +92,7 @@ function endSongDrag() {
             </article>
             <p v-if="!chosenSongs.length" class="hint">从上方搜索曲目并选择谱面。</p>
           </div>
-          <button v-if="selectedMatch.status !== 'completed'" class="secondary wide" :disabled="busy === 'songs'" @click="saveSongs">{{ chosenSongs.length ? '保存曲目配置' : '保存并清空曲目' }}</button>
+          <button v-if="selectedMatch.status !== 'completed'" class="secondary wide" :disabled="!chosenSongs.length" @click="saveSongs">保存曲目配置</button>
         </article>
 
         <article class="panel score-editor" v-if="chosenSongs.length && chosenSongs.every(song => song.id)">

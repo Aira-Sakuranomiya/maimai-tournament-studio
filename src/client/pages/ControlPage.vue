@@ -341,12 +341,10 @@ async function addTeamMatchRow(isTiebreak = false) {
 }
 
 async function deleteTeamMatchRow(match: BracketMatch) {
-  const hasMatchData = match.status === 'completed' || Boolean(match.songs?.length)
-  const warning = hasMatchData ? '\n\n该行的曲目、成绩和胜负积分会一并删除。' : ''
-  if (!window.confirm(`删除第 ${match.matchIndex + 1} 行？${warning}`)) return
+  if (!window.confirm(`删除第 ${match.matchIndex + 1} 行？`)) return
   await run('row-delete', async () => {
     applyTeamBoard(await api<TeamBoard>(`/api/team-board/rows/${match.id}`, { method: 'DELETE' }))
-    await publishLiveChanges(broadcastChannels)
+    await publishLiveChanges(['bracket'])
     notify('对战行已删除并同步直播')
   })
 }
