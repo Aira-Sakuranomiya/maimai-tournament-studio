@@ -14,7 +14,7 @@ const {
     <div class="hero-panel">
       <div>
         <span class="live-pill"><i></i> BROADCAST READY</span>
-        <h2>MAIMAD.wav<br><em>TOURNAMENT STUDIO</em></h2>
+        <h2>MAIMAI<br><em>TOURNAMENT STUDIO</em></h2>
         <p>从两队入场、曲目揭晓到成绩确认和加赛安排，各页面保存后都会立即同步到 OBS。</p>
         <div class="hero-actions">
           <button class="primary" @click="router.push(activeTournament ? '/control/matches' : '/control/players')">

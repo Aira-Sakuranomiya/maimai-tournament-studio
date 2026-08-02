@@ -551,7 +551,7 @@ onMounted(() => run('init', loadAll))
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-disc"><i></i></div>
-        <div><strong>MADMAI.wav</strong><span>TOURNAMENT STUDIO</span></div>
+        <div><strong>MAIMAI</strong><span>TOURNAMENT STUDIO</span></div>
       </div>
       <nav>
         <RouterLink
